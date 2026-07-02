@@ -1,0 +1,159 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "projectName": {
+      "type": "string",
+      "maxLength": 11,
+      "metadata": {
+        "description": "Nombre base del proyecto para nombrar los recursos de Azure (minúscula, máx. 11 carac.)."
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Región de Azure para desplegar los recursos (ej. eastus, westus2)."
+      }
+    }
+  },
+  "variables": {
+    "storageAccountName": "[concat(parameters('projectName'), 'store')]",
+    "serviceBusNamespaceName": "[concat(parameters('projectName'), '-bus')]",
+    "serviceBusQueueName": "leads-queue",
+    "appServicePlanName": "[concat(parameters('projectName'), '-plan')]",
+    "functionAppName": "[concat(parameters('projectName'), '-func')]",
+    "appInsightsName": "[concat(parameters('projectName'), '-insights')]"
+  },
+  "resources": [
+    # 1. Storage Account (Required by Azure Functions - Standard LRS)
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2021-09-01",
+      "name": "[variables('storageAccountName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "supportsHttpsTrafficOnly": true,
+        "encryption": {
+          "services": {
+            "file": {
+              "keyType": "Account",
+              "enabled": true
+            },
+            "blob": {
+              "keyType": "Account",
+              "enabled": true
+            }
+          },
+          "keySource": "Microsoft.Storage"
+        }
+      }
+    },
+    # 2. Service Bus Namespace (Basic Tier - Cost: ~$0.05/month)
+    {
+      "type": "Microsoft.ServiceBus/namespaces",
+      "apiVersion": "2021-11-01",
+      "name": "[variables('serviceBusNamespaceName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Basic",
+        "tier": "Basic"
+      },
+      "properties": {},
+      "resources": [
+        {
+          "type": "queues",
+          "apiVersion": "2021-11-01",
+          "name": "[variables('serviceBusQueueName')]",
+          "dependsOn": [
+            "[variables('serviceBusNamespaceName')]"
+          ],
+          "properties": {
+            "maxDeliveryCount": 10
+          }
+        }
+      ]
+    },
+    # 3. Application Insights (For Logging - Free Tier)
+    {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[variables('appInsightsName')]",
+      "location": "[parameters('location')]",
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web",
+        "publicNetworkAccessForIngestion": "Enabled",
+        "publicNetworkAccessForQuery": "Enabled"
+      }
+    },
+    # 4. App Service Plan (Consumption Y1 - Cost: $0.00/month for low use)
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2021-03-01",
+      "name": "[variables('appServicePlanName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Y1",
+        "tier": "Dynamic"
+      },
+      "properties": {
+        "reserved": true
+      }
+    },
+    # 5. Function App (Python 3.10 - Consumption Model)
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2021-03-01",
+      "name": "[variables('functionAppName')]",
+      "location": "[parameters('location')]",
+      "kind": "functionapp,linux",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+        "[resourceId('Microsoft.Insights/components', variables('appInsightsName'))]",
+        "[resourceId('Microsoft.ServiceBus/namespaces', variables('serviceBusNamespaceName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+        "siteConfig": {
+          "linuxFxVersion": "Python|3.10",
+          "appSettings": [
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2021-09-01').keys[0].value, ';EndpointSuffix=', environment().suffixes.storage)]"
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~4"
+            },
+            {
+              "name": "FUNCTIONS_WORKER_RUNTIME",
+              "value": "python"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').InstrumentationKey]"
+            },
+            {
+              "name": "ServiceBusConnectionString",
+              "value": "[listKeys(resourceId('Microsoft.ServiceBus/namespaces/AuthorizationRules', variables('serviceBusNamespaceName'), 'RootManageSharedAccessKey'), '2021-11-01').primaryConnectionString]"
+            },
+            {
+              "name": "REDIS_HOST",
+              "value": "localhost"
+            },
+            {
+              "name": "REDIS_PORT",
+              "value": "6379"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

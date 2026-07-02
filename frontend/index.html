@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INSECOM S.A. | CRM Comercial</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css?v=1.6.0">
+</head>
+<body>
+    <!-- 1. LOGIN VIEW (Full Screen) -->
+    <div id="view-login" class="login-wrapper">
+        <div class="login-card">
+            <div class="login-brand">
+                <img src="insecom_logo.png" alt="INSECOM Logo" class="login-logo">
+                <h2>INSECOM S.A.</h2>
+                <p>Inteligencia, Seguridad & Comunicación</p>
+            </div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-username"><i class="fa-solid fa-user-shield"></i> Usuario</label>
+                    <input type="text" id="login-username" placeholder="Ingresa tu usuario (ej. admin)" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password"><i class="fa-solid fa-lock"></i> Contraseña</label>
+                    <input type="password" id="login-password" placeholder="Ingresa tu contraseña" required>
+                </div>
+                <div id="login-error" class="login-error hidden">
+                    <i class="fa-solid fa-circle-exclamation"></i> Credenciales inválidas.
+                </div>
+                <button type="submit" class="btn-primary btn-login">
+                    <span>Iniciar Sesión</span> <i class="fa-solid fa-right-to-bracket"></i>
+                </button>
+                <div class="login-options">
+                    <a href="#" id="btn-forgot-password" class="forgot-password-link">¿Olvidó su contraseña?</a>
+                </div>
+            </form>
+            <div id="recovery-message" class="recovery-box hidden">
+                <i class="fa-solid fa-circle-info recovery-icon"></i>
+                <p>Para restablecer su contraseña, póngase en contacto con el equipo de soporte de TI de INSECOM al teléfono <strong>+593 2 269 2257</strong> o al correo <strong>soporte@insecom.com.ec</strong>.</p>
+                <button type="button" id="btn-close-recovery" class="btn-close-recovery">Entendido</button>
+            </div>
+            <div class="login-footer">
+                <span>Acceso de demostración: admin / admin123</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. MAIN APP WORKSPACE (Hidden by default until logged in) -->
+    <div id="app-workspace" class="app-container hidden">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <img src="insecom_logo.png" alt="INSECOM Logo" class="brand-img">
+            </div>
+            <nav class="menu">
+                <a href="#" class="menu-item active" data-target="view-list"><i class="fa-solid fa-list-check"></i> Listado Comercial</a>
+                <a href="#" class="menu-item" data-target="view-form"><i class="fa-solid fa-user-plus"></i> Registro de Leads</a>
+                <a href="#" class="menu-item" data-target="view-notifications"><i class="fa-solid fa-bell"></i> Notificaciones <span class="badge" id="notification-count">0</span></a>
+            </nav>
+            <div class="system-status">
+                <h3>Estado del Sistema</h3>
+                <div class="status-indicator success"><span class="dot"></span> API Gateway: OK</div>
+                <div class="status-indicator success"><span class="dot"></span> Backend API: OK</div>
+                <div class="status-indicator info"><span class="dot"></span> Queue: RabbitMQ</div>
+            </div>
+            <button id="btn-logout" class="menu-item btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión</button>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Buscar prospectos o proyectos...">
+                </div>
+                <div class="user-profile">
+                    <div class="profile-info">
+                        <span class="user-name" id="user-display-name">Admin</span>
+                        <span class="user-role">Ingeniero de Preventa</span>
+                    </div>
+                    <div class="avatar"><i class="fa-solid fa-user-astronaut"></i></div>
+                </div>
+            </header>
+
+            <!-- Workspace Body -->
+            <div class="workspace-body">
+                <!-- Welcome Banner -->
+                <section class="welcome-banner">
+                    <div class="banner-text">
+                        <h2 id="view-title">Portal de Gestión de Leads</h2>
+                        <p>Diseño y Arquitectura de Software - Proyecto Integrador (INSECOM S.A.)</p>
+                    </div>
+                    <div class="banner-icon">
+                        <i class="fa-solid fa-building-shield"></i>
+                    </div>
+                </section>
+
+                <!-- TAB 1: Leads Form View -->
+                <div id="view-form" class="view-pane hidden">
+                    <div class="card form-card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-folder-plus text-gradient-icon"></i>
+                            <h3>Nuevo Prospecto Comercial</h3>
+                        </div>
+                        <p class="card-subtitle">Registra los datos iniciales y requerimientos técnicos del edificio inteligente.</p>
+                        
+                        <form id="lead-form">
+                            <div class="form-group">
+                                <label for="nombre"><i class="fa-solid fa-user"></i> Nombre de Contacto</label>
+                                <input type="text" id="nombre" placeholder="Ej. Juan Pérez" required>
+                            </div>
+                            <div class="form-group" id="email-fields-container">
+                                <label class="label-with-btn">
+                                    <span><i class="fa-solid fa-envelope"></i> Correo(s) Electrónico(s)</span>
+                                    <button type="button" class="btn-add-input" onclick="addDynamicField('email-fields-container', 'lead-email-input', 'Ej. contacto@edificio.com', 'email')">
+                                        <i class="fa-solid fa-plus"></i> Añadir
+                                    </button>
+                                </label>
+                                <div class="dynamic-input-wrapper">
+                                    <input type="email" class="lead-email-input" placeholder="Ej. contacto@edificio.com" required>
+                                </div>
+                            </div>
+                            <div class="form-group" id="telefono-fields-container">
+                                <label class="label-with-btn">
+                                    <span><i class="fa-solid fa-phone"></i> Teléfono(s) / Celular(es)</span>
+                                    <button type="button" class="btn-add-input" onclick="addDynamicField('telefono-fields-container', 'lead-telefono-input', 'Ej. +593 999999999', 'text')">
+                                        <i class="fa-solid fa-plus"></i> Añadir
+                                    </button>
+                                </label>
+                                <div class="dynamic-input-wrapper">
+                                    <input type="text" class="lead-telefono-input" placeholder="Ej. +593 999999999" required>
+                                </div>
+                            </div>
+                            <div class="form-group" id="proyecto-fields-container">
+                                <label class="label-with-btn">
+                                    <span><i class="fa-solid fa-building"></i> Nombre del Edificio / Proyecto(s)</span>
+                                    <button type="button" class="btn-add-input" onclick="addDynamicField('proyecto-fields-container', 'lead-proyecto-input', 'Ej. Torre Elite Plaza', 'text')">
+                                        <i class="fa-solid fa-plus"></i> Añadir
+                                    </button>
+                                </label>
+                                <div class="dynamic-input-wrapper">
+                                    <input type="text" class="lead-proyecto-input" placeholder="Ej. Torre Elite Plaza" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="requerimientos"><i class="fa-solid fa-gears"></i> Requerimientos de Integración</label>
+                                <select id="requerimientos" required>
+                                    <option value="" disabled selected>Seleccione tipo de integración...</option>
+                                    <option value="BMS & Climatización (HVAC)">BMS & Climatización (HVAC)</option>
+                                    <option value="Seguridad Electrónica y CCTV">Seguridad Electrónica y CCTV</option>
+                                    <option value="Control de Accesos & Biométricos">Control de Accesos & Biométricos</option>
+                                    <option value="Audio/Video Integral & Cableado">Audio/Video Integral & Cableado</option>
+                                    <option value="Proyecto Completo de Edificio Inteligente">Proyecto Completo de Edificio Inteligente</option>
+                                    <option value="OTRO">Otro (Especificar requerimiento personalizado...)</option>
+                                </select>
+                            </div>
+                            <div class="form-group hidden" id="requerimientos-otro-container">
+                                <label for="requerimientos-otro"><i class="fa-solid fa-pen-clip"></i> Especifique Requerimiento Personalizado</label>
+                                <input type="text" id="requerimientos-otro" placeholder="Ej. Integración de CCTV con Analítica de Conteo de Personas">
+                            </div>
+                            <div class="form-group">
+                                <label for="lead-estado"><i class="fa-solid fa-signal"></i> Estado del Prospecto</label>
+                                <select id="lead-estado" required>
+                                    <option value="Pendiente" selected>Pendiente</option>
+                                    <option value="Interesado">Interesado</option>
+                                    <option value="No Interesado">No Interesado</option>
+                                </select>
+                            </div>
+                            <div class="form-group hidden" id="fecha-cita-container">
+                                <label for="lead-fecha-cita"><i class="fa-solid fa-calendar-check"></i> Agendar Cita o Llamada de Seguimiento</label>
+                                <input type="datetime-local" id="lead-fecha-cita">
+                            </div>
+                            <div class="form-group">
+                                <label for="detalles"><i class="fa-solid fa-note-sticky"></i> Detalles / Notas Adicionales</label>
+                                <textarea id="detalles-textarea" placeholder="Escriba cualquier detalle extra o nota importante sobre la cotización o diseño técnico..." rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="btn-primary" id="btn-submit">
+                                <span>Registrar en CRM</span> <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- TAB 2: Leads List View -->
+                <div id="view-list" class="view-pane">
+                    <section class="card list-card">
+                        <div class="card-header list-header">
+                            <div>
+                                <i class="fa-solid fa-table-list text-gradient-icon"></i>
+                                <h3>Historial de Leads Registrados (Persistido en MySQL)</h3>
+                            </div>
+                            <div class="list-header-actions">
+                                <button class="btn-primary" id="btn-goto-create"><i class="fa-solid fa-plus"></i> Registrar Lead</button>
+                                <button class="btn-secondary" id="btn-refresh"><i class="fa-solid fa-rotate"></i> Actualizar</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Search, Filter and Export Panel -->
+                        <div class="search-filter-panel">
+                            <div class="search-group">
+                                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                                <input type="text" id="leads-search-input" placeholder="Buscar por ID, nombre, proyecto, email...">
+                            </div>
+                            <div class="filter-group">
+                                <i class="fa-solid fa-filter filter-icon"></i>
+                                <select id="leads-filter-requirement">
+                                    <option value="ALL">Todos los Requerimientos</option>
+                                    <option value="BMS & Climatización (HVAC)">BMS & Climatización (HVAC)</option>
+                                    <option value="Seguridad Electrónica y CCTV">Seguridad Electrónica y CCTV</option>
+                                    <option value="Control de Accesos & Biométricos">Control de Accesos & Biométricos</option>
+                                    <option value="Audio/Video Integral & Cableado">Audio/Video Integral & Cableado</option>
+                                    <option value="Proyecto Completo de Edificio Inteligente">Proyecto Completo de Edificio Inteligente</option>
+                                </select>
+                            </div>
+                            <div class="filter-group export-group">
+                                <i class="fa-solid fa-file-export filter-icon"></i>
+                                <select id="export-select">
+                                    <option value="" disabled selected>Exportar como...</option>
+                                    <option value="JSON">Archivo JSON</option>
+                                    <option value="EXCEL">Hoja Excel (CSV)</option>
+                                    <option value="IMAGE">Captura Imagen (PNG)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="leads-table" id="leads-table-to-export">
+                                <thead>
+                                    <tr>
+                                        <th class="sortable" data-sort="id">ID <i class="fa-solid fa-sort"></i></th>
+                                        <th class="sortable" data-sort="proyecto">Proyecto / Edificio <i class="fa-solid fa-sort"></i></th>
+                                        <th class="sortable" data-sort="nombre">Contacto <i class="fa-solid fa-sort"></i></th>
+                                        <th class="sortable" data-sort="email">Email <i class="fa-solid fa-sort"></i></th>
+                                        <th class="sortable" data-sort="telefono">Teléfono <i class="fa-solid fa-sort"></i></th>
+                                        <th class="sortable" data-sort="requerimientos">Requerimientos <i class="fa-solid fa-sort"></i></th>
+                                        <th class="sortable" data-sort="estado">Estado <i class="fa-solid fa-sort"></i></th>
+                                        <th>Detalles</th>
+                                        <th class="sortable" data-sort="created_at">Fecha Registro <i class="fa-solid fa-sort"></i></th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leads-table-body">
+                                    <!-- Dynamically loaded -->
+                                    <tr>
+                                        <td colspan="10" class="loading-td">Cargando base de datos MySQL...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- TAB 3: Notifications View -->
+                <div id="view-notifications" class="view-pane hidden">
+                    <div class="card notifications-card">
+                        <div class="card-header list-header">
+                            <div>
+                                <i class="fa-solid fa-bolt text-gradient-icon alert-icon"></i>
+                                <h3>Alertas y Serverless Logs (Redis)</h3>
+                            </div>
+                            <button class="btn-secondary" id="btn-clear-notifications" style="border-color: rgba(239, 68, 68, 0.4); color: #ef4444;"><i class="fa-solid fa-trash-can"></i> Limpiar Historial</button>
+                        </div>
+                        <p class="card-subtitle" style="margin-top: -1rem; margin-bottom: 1.5rem;">Flujo de alertas asíncronas de preventa generadas por la <strong>Azure Function</strong> de Notificaciones.</p>
+                        
+                        <!-- Search & Filter Panel for Notifications -->
+                        <div class="search-filter-panel" style="margin-bottom: 1.5rem;">
+                            <div class="search-group">
+                                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                                <input type="text" id="notif-search-input" placeholder="Buscar por título, contacto, proyecto o mensaje...">
+                            </div>
+                            <div class="filter-group">
+                                <i class="fa-solid fa-filter filter-icon"></i>
+                                <select id="notif-filter-type">
+                                    <option value="ALL">Todas las Alertas</option>
+                                    <option value="CREATED">Nuevos Leads (🆕)</option>
+                                    <option value="INTERESADO">Interés Confirmado (🔥)</option>
+                                    <option value="DESCARTADO">Clientes Descartados (❄️)</option>
+                                    <option value="UPDATED">Actualizaciones (🔄)</option>
+                                    <option value="DELETED">Eliminados (🗑️)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="notifications-list" id="notifications-list">
+                            <!-- Dynamically loaded -->
+                            <div class="no-notifications">
+                                <i class="fa-solid fa-circle-nodes"></i>
+                                <p>Esperando eventos del Broker de Mensajería...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Alert Dialog -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- html2canvas for Image Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Custom JS -->
+    <script src="app.js?v=1.6.0"></script>
+</body>
+</html>
