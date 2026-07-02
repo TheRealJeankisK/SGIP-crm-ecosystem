@@ -41,16 +41,16 @@ La solución cumple de forma estricta con todos los requisitos obligatorios plan
 
 ## 📂 Índice de Documentación Detallada (Requisitos Documentales)
 
-Toda la documentación teórica y diagramas requeridos por la rúbrica han sido estructurados en la carpeta [docs/](file:///C:/Users/jeanc/Desktop/Arquitectura%20de%20Software/Control%20del%20Proyecto%20%28Arquitectura%29/A_ABET%20Proyecto%20Integrador/docs/):
+Toda la documentación teórica y diagramas requeridos por la rúbrica han sido estructurados en la carpeta [docs/](docs/):
 
-1.  **[Diagramas de Arquitectura (C4, Infraestructura y Despliegue)](file:///C:/Users/jeanc/Desktop/Arquitectura%20de%20Software/Control%20del%20Proyecto%20%28Arquitectura%29/A_ABET%20Proyecto%20Integrador/docs/arquitectura_c4.md):**
+1.  **[Diagramas de Arquitectura (C4, Infraestructura y Despliegue)](docs/arquitectura_c4.md):**
     *   *Nivel 1: Contexto del Sistema (Mermaid.js)*
     *   *Nivel 2: Contenedores (Mermaid.js)*
     *   *Nivel 3: Componentes de Software (Mermaid.js)*
     *   *Diagrama de Despliegue en la Nube (Topología física de Microsoft Azure)*
-2.  **[Análisis de Atributos de Calidad de la Arquitectura](file:///C:/Users/jeanc/Desktop/Arquitectura%20de%20Software/Control%20del%20Proyecto%20%28Arquitectura%29/A_ABET%20Proyecto%20Integrador/docs/analisis_atributos.md):**
+2.  **[Análisis de Atributos de Calidad de la Arquitectura](docs/analisis_atributos.md):**
     *   Análisis y justificación técnica detallada de los 9 atributos obligatorios de la rúbrica: **Caché, Balanceo, Indexación, Redundancia, Disponibilidad, Concurrencia, Latencia, Costo y Proyección (Azure for Students), y Performance/Escalabilidad**.
-3.  **[Mantenibilidad, Gestión de Logs, Monitoreo y CI/CD](file:///C:/Users/jeanc/Desktop/Arquitectura%20de%20Software/Control%20del%20Proyecto%20%28Arquitectura%29/A_ABET%20Proyecto%20Integrador/docs/cicd_logs.md):**
+3.  **[Mantenibilidad, Gestión de Logs, Monitoreo y CI/CD](docs/cicd_logs.md):**
     *   Diseño de la tubería de Integración y Despliegue Continuo (**GitHub Actions** Workflow para Azure Static Apps, Container Apps y Azure Functions).
     *   Estrategia de logs centralizados (Nginx logs, stdout/stderr y Azure Monitor).
     *   Monitoreo basado en las *4 Golden Signals* (Latencia, Tráfico, Errores, Saturación) con Azure Application Insights.
