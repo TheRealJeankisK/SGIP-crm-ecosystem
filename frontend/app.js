@@ -1087,4 +1087,29 @@ document.addEventListener('DOMContentLoaded', () => {
             toast.classList.add('hidden');
         }, 4000);
     }
+    // Colors Legend Modal event listeners
+    const btnShowLegend = document.getElementById('btn-show-legend');
+    const legendModal = document.getElementById('legend-modal');
+    const btnCloseLegendModal = document.getElementById('btn-close-legend-modal');
+    const btnCloseLegendBtn = document.getElementById('btn-close-legend-btn');
+
+    if (btnShowLegend && legendModal) {
+        btnShowLegend.addEventListener('click', () => {
+            legendModal.classList.remove('hidden');
+        });
+    }
+
+    const closeLegendModal = () => {
+        if (legendModal) legendModal.classList.add('hidden');
+    };
+
+    if (btnCloseLegendModal) btnCloseLegendModal.addEventListener('click', closeLegendModal);
+    if (btnCloseLegendBtn) btnCloseLegendBtn.addEventListener('click', closeLegendModal);
+
+    // Close modal if user clicks outside of the modal box
+    window.addEventListener('click', (e) => {
+        if (e.target === legendModal) {
+            closeLegendModal();
+        }
+    });
 });

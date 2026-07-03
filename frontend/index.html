@@ -9,7 +9,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css?v=1.9.0">
+    <link rel="stylesheet" href="style.css?v=2.0.0">
 </head>
 <body>
     <!-- 1. LOGIN VIEW (Full Screen) -->
@@ -264,7 +264,10 @@
                                 <i class="fa-solid fa-bolt text-gradient-icon alert-icon"></i>
                                 <h3>Alertas y Serverless Logs (Redis)</h3>
                             </div>
-                            <button class="btn-secondary" id="btn-clear-notifications" style="border-color: rgba(239, 68, 68, 0.4); color: #ef4444;"><i class="fa-solid fa-trash-can"></i> Limpiar Historial</button>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn-secondary" id="btn-show-legend" style="border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;"><i class="fa-solid fa-circle-info"></i> Leyenda de Colores</button>
+                                <button class="btn-secondary" id="btn-clear-notifications" style="border-color: rgba(239, 68, 68, 0.4); color: #ef4444;"><i class="fa-solid fa-trash-can"></i> Limpiar Historial</button>
+                            </div>
                         </div>
                         <p class="card-subtitle" style="margin-top: -1rem; margin-bottom: 1.5rem;">Flujo de alertas asíncronas de preventa generadas por la <strong>Azure Function</strong> de Notificaciones.</p>
                         
@@ -300,12 +303,62 @@
         </main>
     </div>
 
+    <!-- Legend Modal -->
+    <div id="legend-modal" class="modal hidden">
+        <div class="modal-content legend-modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-circle-info" style="color: #38bdf8;"></i> Leyenda de Colores en Alertas</h3>
+                <button class="btn-close-modal" id="btn-close-legend-modal">&times;</button>
+            </div>
+            <div class="legend-list">
+                <div class="legend-item">
+                    <span class="legend-color-indicator" style="background-color: var(--accent-green);"></span>
+                    <div class="legend-details">
+                        <strong>Verde (Nuevo Lead):</strong>
+                        <p>Se genera cuando se crea un nuevo prospecto comercial con estado "Pendiente".</p>
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color-indicator" style="background-color: #f97316;"></span>
+                    <div class="legend-details">
+                        <strong>Naranja (Modificación):</strong>
+                        <p>Indica la actualización de datos de contacto o información general del lead.</p>
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color-indicator" style="background-color: #eab308;"></span>
+                    <div class="legend-details">
+                        <strong>Amarillo (Cita Agendada):</strong>
+                        <p>Denota un cliente interesado con una llamada o reunión técnica programada. ¡Requiere seguimiento!</p>
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color-indicator" style="background-color: #64748b;"></span>
+                    <div class="legend-details">
+                        <strong>Gris (Descartado):</strong>
+                        <p>Se activa cuando un lead se marca como "No Interesado" y el proceso comercial se detiene.</p>
+                    </div>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color-indicator" style="background-color: #ef4444;"></span>
+                    <div class="legend-details">
+                        <strong>Rojo (Acción Crítica / Eliminado):</strong>
+                        <p>Indica que un lead ha sido eliminado o se ha realizado una acción administrativa crítica.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-submit" id="btn-close-legend-btn" style="background: var(--gradient-green); width: 100%;">Entendido</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Alert Dialog -->
     <div id="toast" class="toast hidden"></div>
 
     <!-- html2canvas for Image Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- Custom JS -->
-    <script src="app.js?v=1.9.0"></script>
+    <script src="app.js?v=2.0.0"></script>
 </body>
 </html>
