@@ -1152,4 +1152,8 @@ form {
     background-color: rgba(244, 63, 94, 0.03);
 }
 
-
+.notification-item.notif-cita {
+    border-left: 4px solid #eab308 !important;
+    background-color: rgba(234, 179, 8, 0.03);
+    box-shadow: inset 5px 0 10px rgba(234, 179, 8, 0.01);
+}

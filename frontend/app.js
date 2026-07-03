@@ -602,12 +602,16 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const action = notif.action || 'created';
             const estado = notif.estado || 'Pendiente';
+            const hasCita = notif.fecha_cita ? true : false;
             
             if (action === 'deleted') {
                 notifClass = 'notif-deleted';
                 iconHtml = '<i class="fa-solid fa-trash-can" style="color: #f43f5e"></i>';
             } else if (action === 'updated') {
-                if (estado === 'Interesado') {
+                if (estado === 'Interesado' && hasCita) {
+                    notifClass = 'notif-cita';
+                    iconHtml = '<i class="fa-solid fa-calendar-check" style="color: #eab308"></i>';
+                } else if (estado === 'Interesado') {
                     notifClass = 'notif-interesado';
                     iconHtml = '<i class="fa-solid fa-fire-flame-curved" style="color: #f87171"></i>';
                 } else if (estado === 'No Interesado') {
@@ -618,7 +622,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     iconHtml = '<i class="fa-solid fa-arrows-rotate" style="color: #38bdf8"></i>';
                 }
             } else { // created
-                if (estado === 'Interesado') {
+                if (estado === 'Interesado' && hasCita) {
+                    notifClass = 'notif-cita';
+                    iconHtml = '<i class="fa-solid fa-calendar-check" style="color: #eab308"></i>';
+                } else if (estado === 'Interesado') {
                     notifClass = 'notif-created-interesado';
                     iconHtml = '<i class="fa-solid fa-circle-check" style="color: var(--accent-green)"></i>';
                 }
