@@ -64,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
             viewLogin.classList.add('hidden');
             appWorkspace.classList.remove('hidden');
             userDisplayName.innerText = username;
+            updateHeaderAvatar(username);
             
             // Start background sync
             startSync();
@@ -78,6 +79,37 @@ document.addEventListener('DOMContentLoaded', () => {
             // Stop sync
             stopSync();
         }
+    }
+
+    // Update Top Bar Profile Avatar with dynamic initials and custom deterministic gradient
+    function updateHeaderAvatar(username) {
+        const avatarEl = document.querySelector('.top-bar .avatar');
+        if (!avatarEl) return;
+        
+        const userInitial = username.charAt(0).toUpperCase();
+        
+        // Premium curated color gradients
+        const gradients = [
+            { bg: 'linear-gradient(135deg, #6ba92a 0%, #3a651a 100%)', shadow: 'rgba(107, 169, 42, 0.25)' },
+            { bg: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', shadow: 'rgba(59, 130, 246, 0.25)' },
+            { bg: 'linear-gradient(135deg, #8b5cf6 0%, #5b21b6 100%)', shadow: 'rgba(139, 92, 246, 0.25)' },
+            { bg: 'linear-gradient(135deg, #ec4899 0%, #be185d 100%)', shadow: 'rgba(236, 72, 153, 0.25)' },
+            { bg: 'linear-gradient(135deg, #f97316 0%, #c2410c 100%)', shadow: 'rgba(249, 115, 22, 0.25)' },
+            { bg: 'linear-gradient(135deg, #10b981 0%, #047857 100%)', shadow: 'rgba(16, 185, 129, 0.25)' }
+        ];
+        
+        // Select gradient deterministically based on username string hash
+        let hash = 0;
+        for (let i = 0; i < username.length; i++) {
+            hash = username.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const index = Math.abs(hash) % gradients.length;
+        const selectedGradient = gradients[index];
+        
+        // Apply dynamic styling and initials letter
+        avatarEl.style.background = selectedGradient.bg;
+        avatarEl.style.boxShadow = `0 4px 15px ${selectedGradient.shadow}`;
+        avatarEl.innerHTML = `<span style="font-weight: 700; text-transform: uppercase; font-size: 1.1rem; letter-spacing: 0.5px;">${userInitial}</span>`;
     }
 
     // Handle Login Form Submit
