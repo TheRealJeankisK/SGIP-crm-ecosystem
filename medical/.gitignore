@@ -1,0 +1,37 @@
+# Python envs and caches
+*.pdf
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# Local configuration
+.env
+
+# Docker volumes data (local DB state)
+mysql_data/
+redis_data/
+
+# IDE files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OS temporary files
+Thumbs.db
+ehthumbs.db
+Desktop.ini

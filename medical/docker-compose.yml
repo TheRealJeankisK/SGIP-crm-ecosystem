@@ -1,0 +1,106 @@
+version: '3.8'
+
+services:
+  # --- DATA LAYER: MySQL Database ---
+  db:
+    image: mysql:8.0
+    container_name: sgip_mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "${MYSQL_HOST_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u$$MYSQL_USER", "-p$$MYSQL_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --- DATA LAYER: Redis Cache ---
+  cache:
+    image: redis:7-alpine
+    container_name: sgip_redis
+    restart: always
+    ports:
+      - "${REDIS_HOST_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+
+  # --- QUEUE MANAGER: RabbitMQ ---
+  queue:
+    image: rabbitmq:3-management-alpine
+    container_name: sgip_queue
+    restart: always
+    ports:
+      - "${RABBITMQ_HOST_PORT:-5672}:5672"
+      - "${RABBITMQ_ADMIN_HOST_PORT:-15672}:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --- APP 1: Frontend App ---
+  frontend:
+    image: nginx:alpine
+    container_name: sgip_frontend
+    restart: always
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    ports:
+      - "${FRONTEND_HOST_PORT:-8081}:80"
+
+  # --- APP 2: Core Patients Service (Backend API) ---
+  patients-service:
+    build:
+      context: ./services/patients-api
+    container_name: sgip_patients_api
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "${PATIENTS_API_HOST_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      queue:
+        condition: service_healthy
+
+  # --- APP 3: Notification Lambda (Serverless Simulator) ---
+  notification-lambda:
+    build:
+      context: ./services/notification-worker
+    container_name: sgip_notification_lambda
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      queue:
+        condition: service_healthy
+      cache:
+        condition: service_started
+
+  # --- API GATEWAY: Nginx Reverse Proxy ---
+  api-gateway:
+    image: nginx:alpine
+    container_name: sgip_gateway
+    restart: always
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "${GATEWAY_HOST_PORT:-80}:80"
+    depends_on:
+      - frontend
+      - patients-service
+
+volumes:
+  mysql_data:
+  redis_data:
