@@ -31,7 +31,7 @@
         <mxCell id="10umMJEsWOS9K2vDFbrz-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
           <mxGeometry height="140" width="760" x="40" y="900" as="geometry" />
         </mxCell>
-        <mxCell id="10umMJEsWOS9K2vDFbrz-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" value="Cores / crm / erp / ..." vertex="1">
+        <mxCell id="10umMJEsWOS9K2vDFbrz-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" value="Cores / Backend / API / ..." vertex="1">
           <mxGeometry height="20" width="130" x="40" y="900" as="geometry" />
         </mxCell>
         <mxCell id="10umMJEsWOS9K2vDFbrz-11" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
@@ -111,7 +111,7 @@
             <mxPoint x="250" y="340" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="5R_NW-HiHxDLghiaGmvc-3" parent="1" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#505050;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.users.user;fontFamily=Consolas;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DConsolas;" value="Vendedores / Ingenieros en Campo&lt;br&gt;(App M&amp;oacute;vil / Web)" vertex="1">
+        <mxCell id="5R_NW-HiHxDLghiaGmvc-3" parent="1" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#505050;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.users.user;fontFamily=Consolas;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DConsolas;" value="M&amp;eacute;dicos / Personal de Salud&lt;br&gt;(Portal Cl&amp;iacute;nico Web)" vertex="1">
           <mxGeometry height="32" width="32" x="430" y="200" as="geometry" />
         </mxCell>
         <mxCell id="5R_NW-HiHxDLghiaGmvc-7" edge="1" parent="1" source="O0Xs51O-jKY1W5wy7n4s-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="O0Xs51O-jKY1W5wy7n4s-4">
@@ -211,6 +211,30 @@
         </mxCell>
         <mxCell id="O0Xs51O-jKY1W5wy7n4s-11" parent="1" style="html=1;outlineConnect=0;whiteSpace=wrap;fillColor=light-dark(#dbe7fc, #281d00);shape=mxgraph.archimate3.application;appType=node;archiType=square;fontFamily=Consolas;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DConsolas;" value="Serverless Host (Azure Functions / Local Container)" vertex="1">
           <mxGeometry height="60" width="150" x="660" y="1090" as="geometry" />
+        </mxCell>
+        <mxCell id="O0Xs51O-jKY1W5wy7n4s-99" parent="1" style="html=1;outlineConnect=0;whiteSpace=wrap;fillColor=light-dark(#f8cecc, #3d2121);shape=mxgraph.archimate3.application;appType=comp;archiType=square;fontFamily=Consolas;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DConsolas;" value="Laboratorio Cl&amp;iacute;nico Externo&lt;br&gt;(Env&amp;iacute;o de Ex&amp;aacute;menes JSON/XML)" vertex="1">
+          <mxGeometry height="60" width="150" x="600" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="O0Xs51O-jKY1W5wy7n4s-100" edge="1" parent="1" source="O0Xs51O-jKY1W5wy7n4s-99" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="O0Xs51O-jKY1W5wy7n4s-6">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="675" y="400" as="sourcePoint" />
+            <mxPoint x="460" y="630" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="O0Xs51O-jKY1W5wy7n4s-101" parent="1" style="html=1;outlineConnect=0;whiteSpace=wrap;fillColor=light-dark(#fff2cc, #4d3f18);shape=mxgraph.archimate3.application;appType=comp;archiType=square;fontFamily=Consolas;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DConsolas;" value="Pasarela de Integraci&amp;oacute;n&lt;br&gt;(JSON/XML Adapter)" vertex="1">
+          <mxGeometry height="60" width="130" x="350" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="O0Xs51O-jKY1W5wy7n4s-102" edge="1" parent="1" source="O0Xs51O-jKY1W5wy7n4s-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="O0Xs51O-jKY1W5wy7n4s-101">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="460" y="690" as="sourcePoint" />
+            <mxPoint x="415" y="790" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="O0Xs51O-jKY1W5wy7n4s-103" edge="1" parent="1" source="O0Xs51O-jKY1W5wy7n4s-101" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="O0Xs51O-jKY1W5wy7n4s-8">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="350" y="820" as="sourcePoint" />
+            <mxPoint x="330" y="820" as="targetPoint" />
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>
