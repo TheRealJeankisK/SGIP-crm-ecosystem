@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGIP — Presentación Arquitectura de Software</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        html {
+            font-size: 20px; /* Scaled up for projector readability */
+        }
+        @media (min-width: 1600px) {
+            html {
+                font-size: 22px; /* Extra scale for ultra-wide screens */
+            }
+        }
+
+        /* Scale up slide container widths to match the font scaling */
+        .slide > div[style*="max-width: 1050px"] {
+            max-width: 1350px !important;
+        }
+        .slide > div[style*="max-width: 1100px"] {
+            max-width: 1400px !important;
+        }
+        .slide > div[style*="max-width: 1000px"] {
+            max-width: 1300px !important;
+        }
+        .slide > div[style*="max-width: 900px"] {
+            max-width: 1200px !important;
+        }
+
+        :root {
+            --bg: #070b14;
+            --surface: #0d1320;
+            --surface2: #111827;
+            --border: rgba(255,255,255,0.08);
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --accent: #6366f1;
+            --accent2: #22d3ee;
+            --green: #10b981;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+            --purple: #a855f7;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* ── Progress Bar ── */
+        #progress-bar {
+            position: fixed;
+            top: 0; left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            transition: width 0.4s ease;
+            z-index: 100;
+            box-shadow: 0 0 12px rgba(99,102,241,0.8);
+        }
+
+        /* ── Slide Controls ── */
+        #controls {
+            position: fixed;
+            bottom: 2rem; right: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        #slide-counter {
+            font-size: 0.85rem;
+            color: var(--muted);
+            font-weight: 500;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .ctrl-btn {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.05);
+            color: var(--text);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+        }
+        .ctrl-btn:hover { background: var(--accent); border-color: var(--accent); transform: scale(1.08); }
+        .ctrl-btn:disabled { opacity: 0.3; cursor: default; transform: none; }
+
+        /* ── Slide Dots ── */
+        #dots {
+            position: fixed;
+            bottom: 2rem; left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.4rem;
+            z-index: 100;
+        }
+        .dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .dot.active {
+            background: var(--accent);
+            width: 20px;
+            border-radius: 3px;
+            box-shadow: 0 0 8px rgba(99,102,241,0.6);
+        }
+
+        /* ── Slides Wrapper ── */
+        #slides-wrapper {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 5rem;
+            opacity: 0;
+            transform: translateX(60px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+        }
+        .slide.exit {
+            opacity: 0;
+            transform: translateX(-60px);
+        }
+
+        /* ── BG Decorations ── */
+        .slide::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 60% 50% at 80% 20%, rgba(99,102,241,0.08) 0%, transparent 70%),
+                        radial-gradient(ellipse 40% 40% at 20% 80%, rgba(34,211,238,0.06) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        /* ── Typography ── */
+        .slide-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .slide-label::before { content: ''; display: block; width: 24px; height: 2px; background: var(--accent); border-radius: 2px; }
+
+        h1.hero { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 900; line-height: 1.1; letter-spacing: -1.5px; }
+        h2.title { font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight: 800; line-height: 1.2; letter-spacing: -0.5px; }
+        h3.sub { font-size: 1.1rem; font-weight: 600; color: var(--muted); margin-top: 0.5rem; }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .gradient-text-green {
+            background: linear-gradient(135deg, var(--green), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+        }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; width: 100%; max-width: 1350px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.2rem; width: 100%; max-width: 1350px; }
+        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1.2rem; width: 100%; max-width: 1450px; }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-blue { background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); color: #818cf8; }
+        .badge-green { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #34d399; }
+        .badge-yellow { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fbbf24; }
+        .badge-red { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #f87171; }
+        .badge-purple { background: rgba(168,85,247,0.15); border: 1px solid rgba(168,85,247,0.3); color: #c084fc; }
+        .badge-cyan { background: rgba(34,211,238,0.15); border: 1px solid rgba(34,211,238,0.3); color: #67e8f9; }
+
+        .tag { display: inline-block; background: rgba(255,255,255,0.07); border: 1px solid var(--border); padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.78rem; color: var(--muted); margin: 0.2rem; font-family: 'JetBrains Mono', monospace; }
+
+        /* ── Icon Boxes ── */
+        .icon-box {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem;
+            margin-bottom: 0.8rem;
+            flex-shrink: 0;
+        }
+        .ib-blue { background: rgba(99,102,241,0.15); color: #818cf8; }
+        .ib-green { background: rgba(16,185,129,0.15); color: #34d399; }
+        .ib-yellow { background: rgba(245,158,11,0.15); color: #fbbf24; }
+        .ib-red { background: rgba(239,68,68,0.15); color: #f87171; }
+        .ib-purple { background: rgba(168,85,247,0.15); color: #c084fc; }
+        .ib-cyan { background: rgba(34,211,238,0.15); color: #67e8f9; }
+
+        /* ── List ── */
+        .check-list { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
+        .check-list li { display: flex; align-items: flex-start; gap: 0.7rem; font-size: 0.92rem; line-height: 1.5; }
+        .check-list li i { color: var(--green); margin-top: 2px; flex-shrink: 0; }
+
+        /* ── Architecture Flow ── */
+        .arch-flow {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .arch-node {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.6rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            text-align: center;
+            min-width: 90px;
+        }
+        .arch-arrow { color: var(--muted); font-size: 1.2rem; }
+
+        /* ── Rubric Table ── */
+        .rub-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .rub-table th { padding: 0.7rem 1rem; background: rgba(99,102,241,0.1); color: var(--accent); font-weight: 700; text-align: left; border-bottom: 1px solid var(--border); }
+        .rub-table td { padding: 0.65rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .rub-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .pts { font-weight: 800; color: var(--green); font-family: 'JetBrains Mono', monospace; }
+
+        /* ── Stat boxes ── */
+        .stat { text-align: center; }
+        .stat .num { font-size: 2.5rem; font-weight: 900; line-height: 1; }
+        .stat .lbl { font-size: 0.78rem; color: var(--muted); margin-top: 0.3rem; font-weight: 500; }
+
+        /* ── Code block ── */
+        .code-block {
+            background: #0a0e1a;
+            border: 1px solid rgba(99,102,241,0.2);
+            border-radius: 10px;
+            padding: 1rem 1.2rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            line-height: 1.7;
+            color: #e2e8f0;
+            text-align: left;
+        }
+        .kw { color: #818cf8; }
+        .str { color: #34d399; }
+        .cm { color: #475569; }
+        .fn { color: #67e8f9; }
+
+        /* ── C4 boxes ── */
+        .c4-level {
+            padding: 0.5rem 1.2rem 0.5rem 1rem;
+            border-left: 3px solid;
+            margin-bottom: 0.6rem;
+            border-radius: 0 8px 8px 0;
+            background: rgba(255,255,255,0.02);
+        }
+
+        /* ── Slide 1: Hero ── */
+        #slide-1 .hero-wrap {
+            display: flex; flex-direction: column; align-items: flex-start;
+            max-width: 1000px; width: 100%;
+        }
+        #slide-1 .meta-tags { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 2rem; }
+        #slide-1 .university-tag {
+            font-size: 0.8rem; color: var(--muted);
+            display: flex; align-items: center; gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ── Floating decorative orbs ── */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            opacity: 0.25;
+        }
+    </style>
+</head>
+<body>
+
+<div id="progress-bar" style="width: 7.69%"></div>
+
+<div id="slides-wrapper">
+
+    <!-- ══ SLIDE 1: HERO ══ -->
+    <div class="slide active" id="slide-1">
+        <div class="orb" style="width:400px;height:400px;background:#6366f1;top:-100px;right:-50px;"></div>
+        <div class="orb" style="width:300px;height:300px;background:#22d3ee;bottom:-80px;left:-60px;"></div>
+        <div class="hero-wrap">
+            <div class="university-tag">
+                <i class="fa-solid fa-university"></i>
+                UDLA (Universidad de las Américas) &nbsp;·&nbsp; FICA &nbsp;·&nbsp; Ingeniería de Software &nbsp;·&nbsp; ISWZ2202
+            </div>
+            <div class="slide-label"><i class="fa-solid fa-hospital"></i> Proyecto Integrador — A_ABET</div>
+            <h1 class="hero">Sistema de Gestión<br>Integrado de <span class="gradient-text">Pacientes</span></h1>
+            <h3 class="sub" style="margin-top: 1.2rem; font-size: 1.15rem; max-width: 620px; line-height: 1.6;">
+                SGIP — Portal clínico y de telemedicina desarrollado con una arquitectura de microservicios utilizando colas de mensajería, funciones serverless y patrones de diseño.
+            </h3>
+            <div class="meta-tags">
+                <span class="badge badge-blue"><i class="fa-brands fa-python"></i> FastAPI</span>
+                <span class="badge badge-green"><i class="fa-solid fa-database"></i> MySQL + Redis</span>
+                <span class="badge badge-yellow"><i class="fa-brands fa-docker"></i> Docker Compose</span>
+                <span class="badge badge-purple"><i class="fa-solid fa-bolt"></i> RabbitMQ</span>
+                <span class="badge badge-cyan"><i class="fa-solid fa-shield"></i> Nginx Gateway</span>
+                <span class="badge badge-red"><i class="fa-solid fa-code"></i> HTML5 / Vanilla JS</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ SLIDE 2: CONTEXTO Y PROBLEMA ══ -->
+    <div class="slide" id="slide-2">
+        <div style="max-width: 1050px; width: 100%;">
+            <div class="slide-label"><i class="fa-solid fa-circle-info"></i> Introducción</div>
+            <h2 class="title" style="margin-bottom: 1.8rem;">Contexto y <span class="gradient-text">Problemática</span></h2>
+            <div class="grid-2" style="gap: 1.5rem;">
+                <div class="card" style="border-color: rgba(239,68,68,0.3); padding: 1.5rem;">
+                    <div style="font-weight:700; margin-bottom:1rem; color:#f87171; display:flex; align-items:center; gap:0.6rem;">
+                        <i class="fa-solid fa-triangle-exclamation"></i> El Problema
+                    </div>
+                    <ul class="check-list" style="font-size:0.85rem; line-height: 1.6;">
+                        <li><i class="fa-solid fa-xmark-circle" style="color:#f87171;"></i><span><strong>Sistemas Fragmentados:</strong> Las aplicaciones del hospital no se comunican de forma fluida, retrasando la visualización de exámenes.</span></li>
+                        <li><i class="fa-solid fa-xmark-circle" style="color:#f87171;"></i><span><strong>Monitoreo Lento:</strong> Los signos vitales de pacientes críticos se evalúan manualmente, impidiendo una reacción inmediata ante anomalías.</span></li>
+                        <li><i class="fa-solid fa-xmark-circle" style="color:#f87171;"></i><span><strong>Incompatibilidad de Datos:</strong> Laboratorios externos envían exámenes en formatos incompatibles (JSON, XML), causando reprocesos.</span></li>
+                    </ul>
+                </div>
+                <div class="card" style="border-color: rgba(16,185,129,0.3); padding: 1.5rem;">
+                    <div style="font-weight:700; margin-bottom:1rem; color:#34d399; display:flex; align-items:center; gap:0.6rem;">
+                        <i class="fa-solid fa-circle-check"></i> ¿Por qué SGIP?
+                    </div>
+                    <ul class="check-list" style="font-size:0.85rem; line-height: 1.6;">
+                        <li><i class="fa-solid fa-check-circle" style="color:#34d399;"></i><span><strong>Integración de Datos:</strong> Permite recibir exámenes de laboratorios externos sin alterar el código central (Patrón Adapter).</span></li>
+                        <li><i class="fa-solid fa-check-circle" style="color:#34d399;"></i><span><strong>Alertas Clínicas en Vivo:</strong> Procesa de forma paralela signos vitales críticos (Fiebre, Hipoxia, Presión) para notificar al médico en segundos.</span></li>
+                        <li><i class="fa-solid fa-check-circle" style="color:#34d399;"></i><span><strong>Arquitectura Escalable:</strong> Diseñado con microservicios y colas asíncronas para soportar alta demanda sin colapsar el sistema.</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ SLIDE 3: ECOSISTEMA ══ -->
+    <div class="slide" id="slide-3">
+        <div style="max-width: 1100px; width: 100%;">
+            <div class="slide-label"><i class="fa-solid fa-diagram-project"></i> Arquitectura General</div>
+            <h2 class="title" style="margin-bottom: 1.8rem;">Ecosistema de <span class="gradient-text">Servicios</span></h2>
+            <div class="arch-flow" style="gap: 1rem; margin-bottom: 1.8rem;">
+                <div class="arch-node" style="border-color: rgba(34,211,238,0.3); background: rgba(34,211,238,0.05);">
+                    <i class="fa-solid fa-globe" style="color: #67e8f9; font-size: 1.4rem;"></i>
+                    <span style="color: #67e8f9;">Navegador</span>
+                    <span style="color: var(--muted); font-size: 0.7rem;">Cliente Web</span>
+                </div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node" style="border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.08);">
+                    <i class="fa-solid fa-shield" style="color: #818cf8; font-size: 1.4rem;"></i>
+                    <span style="color: #818cf8;">API Gateway</span>
+                    <span style="color: var(--muted); font-size: 0.7rem;">Nginx :80</span>
+                </div>
+                <div class="arch-arrow">→</div>
+                <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+                    <div class="arch-node" style="border-color: rgba(16,185,129,0.3);">
+                        <i class="fa-solid fa-desktop" style="color: #34d399;"></i>
+                        <span>Frontend SPA</span>
+                        <span style="color: var(--muted); font-size: 0.7rem;">App 1</span>
+                    </div>
+                    <div class="arch-node" style="border-color: rgba(245,158,11,0.3);">
+                        <i class="fa-brands fa-python" style="color: #fbbf24;"></i>
+                        <span>Patients API</span>
+                        <span style="color: var(--muted); font-size: 0.7rem;">App 2 · FastAPI</span>
+                    </div>
+                </div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node" style="border-color: rgba(168,85,247,0.3); background: rgba(168,85,247,0.05);">
+                    <i class="fa-solid fa-arrows-spin" style="color: #c084fc; font-size: 1.4rem;"></i>
+                    <span style="color: #c084fc;">RabbitMQ</span>
+                    <span style="color: var(--muted); font-size: 0.7rem;">Cola de Eventos</span>
+                </div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node" style="border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05);">
+                    <i class="fa-solid fa-bolt" style="color: #f87171; font-size: 1.4rem;"></i>
+                    <span style="color: #f87171;">Lambda Worker</span>
+                    <span style="color: var(--muted); font-size: 0.7rem;">App 3</span>
+                </div>
+            </div>
+            <div class="grid-4">
+                <div class="card">
+                    <i class="fa-solid fa-desktop ib-cyan" style="font-size:1.2rem; color:#67e8f9; margin-bottom:0.5rem;"></i>
+                    <div style="font-weight:700; font-size:0.9rem;">App 1 — Frontend</div>
+                    <div style="font-size:0.78rem; color:var(--muted); margin-top:0.3rem;">Portal SPA clínico en HTML5 + Vanilla JS servido por Nginx</div>
+                </div>
+                <div class="card">
+                    <i class="fa-brands fa-python" style="font-size:1.2rem; color:#fbbf24; margin-bottom:0.5rem;"></i>
+                    <div style="font-weight:700; font-size:0.9rem;">App 2 — Patients API</div>
+                    <div style="font-size:0.78rem; color:var(--muted); margin-top:0.3rem;">Microservicio FastAPI REST con MySQL, Auth JWT, CRUD pacientes</div>
+                </div>
+                <div class="card">
+                    <i class="fa-solid fa-bolt" style="font-size:1.2rem; color:#f87171; margin-bottom:0.5rem;"></i>
+                    <div style="font-weight:700; font-size:0.9rem;">App 3 — Lambda Worker</div>
+                    <div style="font-size:0.78rem; color:var(--muted); margin-top:0.3rem;">Función serverless que escucha cola RabbitMQ y escribe alertas en Redis</div>
+                </div>
+                <div class="card">
+                    <i class="fa-solid fa-shield" style="font-size:1.2rem; color:#818cf8; margin-bottom:0.5rem;"></i>
+                    <div style="font-weight:700; font-size:0.9rem;">API Gateway — Nginx</div>
+                    <div style="font-size:0.78rem; color:var(--muted); margin-top:0.3rem;">Enruta y centraliza todos los servicios. Proxy reverso + Load Balancer</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ SLIDE 4: DOCKER COMPOSE ══ -->
+    <div class="slide" id="slide-4">
+        <div style="max-width: 1100px; width: 100%;">
+            <div class="slide-label"><i class="fa-brands fa-docker"></i> Infraestructura</div>
+            <h2 class="title" style="margin-bottom: 1.5rem;">Contenedores <span class="gradient-text">Docker</span> del Sistema</h2>
+            <div class="grid-3" style="gap: 1rem;">
+                <div class="card" style="border-color: rgba(34,211,238,0.2);">
+                    <div style="display:flex; align-items:center; gap:0.7rem; margin-bottom:0.8rem;">
+                        <div class="icon-box ib-cyan"><i class="fa-solid fa-shield"></i></div>
+                        <div><div style="font-weight:700;">sgip_gateway</div><div class="badge badge-cyan" style="font-size:0.68rem;">API Gateway</div></div>
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--muted);">Nginx · Puerto <strong style="color:var(--text);">:80</strong><br>Enrutamiento y proxy reverso</div>
+                </div>
+                <div class="card" style="border-color: rgba(16,185,129,0.2);">
+                    <div style="display:flex; align-items:center; gap:0.7rem; margin-bottom:0.8rem;">
+                        <div class="icon-box ib-green"><i class="fa-solid fa-desktop"></i></div>
+                        <div><div style="font-weight:700;">sgip_frontend</div><div class="badge badge-green" style="font-size:0.68rem;">App 1</div></div>
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--muted);">Nginx sirviendo HTML5 SPA<br>Portal médico completo</div>
+                </div>
+                <div class="card" style="border-color: rgba(245,158,11,0.2);">
+                    <div style="display:flex; align-items:center; gap:0.7rem; margin-bottom:0.8rem;">
+                        <div class="icon-box ib-yellow"><i class="fa-brands fa-python"></i></div>
+                        <div><div style="font-weight:700;">sgip_patients_api</div><div class="badge badge-yellow" style="font-size:0.68rem;">App 2</div></div>
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--muted);">FastAPI + Uvicorn · Puerto <strong style="color:var(--text);">:8000</strong><br>CRUD Pacientes + Auth</div>
+                </div>
+                <div class="card" style="border-color: rgba(239,68,68,0.2);">
+                    <div style="display:flex; align-items:center; gap:0.7rem; margin-bottom:0.8rem;">
+                        <div class="icon-box ib-red"><i class="fa-solid fa-bolt"></i></div>
+                        <div><div style="font-weight:700;">sgip_lambda_worker</div><div class="badge badge-red" style="font-size:0.68rem;">App 3 — Lambda</div></div>
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--muted);">Python listener serverless<br>Consume RabbitMQ → Redis</div>
+                </div>
+                <div class="card" style="border-color: rgba(168,85,247,0.2);">
+                    <div style="display:flex; align-items:center; gap:0.7rem; margin-bottom:0.8rem;">
+                        <div class="icon-box ib-purple"><i class="fa-solid fa-arrows-spin"></i></div>
+                        <div><div style="font-weight:700;">sgip_queue</div><div class="badge badge-purple" style="font-size:0.68rem;">Message Broker</div></div>
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--muted);">RabbitMQ · Puerto <strong style="color:var(--text);">:5672</strong><br>Gestor de colas de eventos</div>
+                </div>
+                <div class="card" style="border-color: rgba(16,185,129,0.2);">
+                    <div style="display:flex; align-items:center; gap:0.7rem; margin-bottom:0.8rem;">
+                        <div class="icon-box ib-green"><i class="fa-solid fa-database"></i></div>
+                        <div><div style="font-weight:700;">sgip_mysql &amp; sgip_redis</div><div class="badge badge-green" style="font-size:0.68rem;">Almacenamiento y Caché</div></div>
+                    </div>
+                    <div style="font-size:0.8rem; color:var(--muted);">MySQL (Puerto :3306) + Redis (Puerto :6379) para persistencia y caché de alertas</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ SLIDE 5: PATRON BROKER + ADAPTER ══ -->
+    <div class="slide" id="slide-5">
+        <div style="max-width: 1050px; width: 100%;">
+            <div class="slide-label"><i class="fa-solid fa-shapes"></i> Patrones de Diseño</div>
+            <h2 class="title" style="margin-bottom: 1.5rem;">Uso de <span class="gradient-text">Broker</span> y <span class="gradient-text">Adapter</span></h2>
+            <div class="grid-2">
+                <div class="card" style="border-color: rgba(168,85,247,0.3);">
+                    <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:1rem;">
+                        <div class="icon-box ib-purple" style="width:44px;height:44px;"><i class="fa-solid fa-arrows-spin"></i></div>
+                        <div>
+                            <div style="font-weight:800; font-size:1rem;">Patrón Broker</div>
+                            <div style="font-size:0.78rem; color:var(--muted);">Mensajería asíncrona con RabbitMQ</div>
+                        </div>
+                    </div>
+                    <ul class="check-list" style="font-size:0.85rem;">
+                        <li><i class="fa-solid fa-check-circle"></i><span>Al crear/actualizar un paciente, la API publica un <strong>evento JSON</strong> en la cola <code style="color:#c084fc">patients_queue</code></span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span>El <strong>Lambda Worker</strong> consume el evento de forma asíncrona y escribe la alerta en Redis</span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span><strong>Desacoplamiento total</strong>: el backend no espera al worker — responde en ≤15ms</span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span>Si el worker cae, RabbitMQ <strong>persiste los mensajes</strong> hasta que se recupere</span></li>
+                    </ul>
+                </div>
+                <div class="card" style="border-color: rgba(34,211,238,0.3);">
+                    <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:1rem;">
+                        <div class="icon-box ib-cyan" style="width:44px;height:44px;"><i class="fa-solid fa-plug"></i></div>
+                        <div>
+                            <div style="font-weight:800; font-size:1rem;">Patrón Adapter</div>
+                            <div style="font-size:0.78rem; color:var(--muted);">Integración de Exámenes de Lab</div>
+                        </div>
+                    </div>
+                    <ul class="check-list" style="font-size:0.85rem;">
+                        <li><i class="fa-solid fa-check-circle"></i><span>Los laboratorios externos envían datos en <strong>JSON o XML</strong> con formatos distintos</span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span>El endpoint <code style="color:#67e8f9">/ingest-lab</code> actúa como Adapter: <strong>normaliza</strong> cualquier formato al modelo interno</span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span>Soporta proveedores: <strong>Central JSON, HL7 FHIR, DICOM XML</strong></span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span>Integración transparente: el sistema <strong>no cambia</strong> aunque cambie el proveedor externo</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="arch-flow" style="margin-top: 1.5rem; gap: 0.6rem; font-size: 0.8rem;">
+                <div class="arch-node" style="border-color:rgba(245,158,11,0.3); min-width:80px; font-size:0.75rem;"><i class="fa-solid fa-hospital" style="color:#fbbf24;"></i><span>Patients API</span></div>
+                <div class="arch-arrow" style="color: #c084fc;">→ publica →</div>
+                <div class="arch-node" style="border-color:rgba(168,85,247,0.3); min-width:80px; font-size:0.75rem;"><i class="fa-solid fa-arrows-spin" style="color:#c084fc;"></i><span>RabbitMQ</span></div>
+                <div class="arch-arrow" style="color: #f87171;">→ consume →</div>
+                <div class="arch-node" style="border-color:rgba(239,68,68,0.3); min-width:80px; font-size:0.75rem;"><i class="fa-solid fa-bolt" style="color:#f87171;"></i><span>Lambda Worker</span></div>
+                <div class="arch-arrow" style="color: #34d399;">→ escribe →</div>
+                <div class="arch-node" style="border-color:rgba(16,185,129,0.3); min-width:80px; font-size:0.75rem;"><i class="fa-solid fa-memory" style="color:#34d399;"></i><span>Redis Cache</span></div>
+                <div class="arch-arrow" style="color: #67e8f9;">→ lee →</div>
+                <div class="arch-node" style="border-color:rgba(34,211,238,0.3); min-width:80px; font-size:0.75rem;"><i class="fa-solid fa-desktop" style="color:#67e8f9;"></i><span>Frontend</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ SLIDE 6: LAMBDA ══ -->
+    <div class="slide" id="slide-6">
+        <div style="max-width: 1050px; width: 100%;">
+            <div class="slide-label"><i class="fa-solid fa-bolt"></i> Server Functions</div>
+            <h2 class="title" style="margin-bottom: 1.5rem;">Lambda / <span class="gradient-text">Serverless Function</span></h2>
+            <div class="grid-2">
+                <div>
+                    <ul class="check-list" style="margin-bottom: 1.2rem;">
+                        <li><i class="fa-solid fa-check-circle"></i><span><strong>notification-worker</strong> — función Python que corre en su propio contenedor Docker</span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span>Implementada siguiendo el patrón <strong>Azure Functions</strong> con <code>function_app.py</code> + <code>host.json</code></span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span>El <strong>trigger</strong> es la llegada de un mensaje a la cola RabbitMQ (event-driven)</span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span>No expone HTTP — solo consume, procesa y <strong>escribe en Redis</strong></span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span>En producción Azure: se despliega como <strong>Azure Function</strong> en plan de consumo (pago por uso)</span></li>
+                    </ul>
+                    <div class="code-block">
+<span class="cm"># lambda_runner.py — Event trigger function</span>
+<span class="kw">def</span> <span class="fn">start_consuming</span>():
+    connection = <span class="fn">pika.BlockingConnection</span>(...)
+    channel.basic_consume(
+        queue=<span class="str">'patients_queue'</span>,
+        on_message_callback=<span class="fn">process_event</span>
+    )
+    channel.<span class="fn">start_consuming</span>()  <span class="cm"># blocks — serverless loop</span>
+                    </div>
+                </div>
+                <div class="card" style="border-color: rgba(239,68,68,0.3);">
+                    <div style="font-weight:700; margin-bottom:1rem; color:#f87171;"><i class="fa-solid fa-bolt"></i> Lo que hace la Lambda</div>
+                    <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                        <div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:0.8rem; border-left: 3px solid #f87171;">
+                            <div style="font-weight:600; font-size:0.85rem; margin-bottom:0.3rem;">1 · Recibe evento de cola</div>
+                            <div style="font-size:0.78rem; color:var(--muted);">JSON con datos del paciente creado/actualizado/eliminado</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:0.8rem; border-left: 3px solid #fbbf24;">
+                            <div style="font-weight:600; font-size:0.85rem; margin-bottom:0.3rem;">2 · Motor de Reglas Clínicas (CDSS)</div>
+                            <div style="font-size:0.78rem; color:var(--muted);">Analiza signos vitales con Regex (Temp, FC, SatO2, PA) y dispara alertas críticas.</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:0.8rem; border-left: 3px solid #34d399;">
+                            <div style="font-weight:600; font-size:0.85rem; margin-bottom:0.3rem;">3 · Escribe en Redis LPUSH</div>
+                            <div style="font-size:0.78rem; color:var(--muted);">Lista <code>patients_notifications_list</code> con TTL — máx. 50 alertas</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:0.8rem; border-left: 3px solid #818cf8;">
+                            <div style="font-weight:600; font-size:0.85rem; margin-bottom:0.3rem;">4 · Frontend polling</div>
+                            <div style="font-size:0.78rem; color:var(--muted);">API lee Redis y muestra alertas en tiempo real al médico</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ SLIDE 7: API GATEWAY + SWAGGER ══ -->
+    <div class="slide" id="slide-7">
+        <div style="max-width: 1050px; width: 100%;">
+            <div class="slide-label"><i class="fa-solid fa-shield"></i> Centralización de Servicios</div>
+            <h2 class="title" style="margin-bottom: 1.5rem;">API Gateway &amp; <span class="gradient-text">Swagger Docs</span></h2>
+            <div class="grid-2">
+                <div class="card" style="border-color: rgba(99,102,241,0.3);">
+                    <div style="font-weight:700; margin-bottom:1rem;"><i class="fa-solid fa-shield" style="color:#818cf8;"></i> Nginx como API Gateway</div>
+                    <ul class="check-list" style="font-size:0.85rem; margin-bottom:1rem;">
+                        <li><i class="fa-solid fa-check-circle"></i><span><strong>Un solo punto de entrada</strong> en <code>localhost:80</code></span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span>Enruta <code>/</code> al Frontend, <code>/api/v1/</code> al backend Python</span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span>Compresión <strong>gzip</strong> para archivos estáticos</span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span>Headers de caché del navegador configurados</span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span>Proxy reverso con <code>proxy_pass</code> transparente</span></li>
+                    </ul>
+                    <div class="code-block" style="font-size: 0.73rem;">
+<span class="kw">location</span> /api/v1/ {
+    proxy_pass <span class="str">http://sgip_patients_api:8000</span>;
+    proxy_set_header Host $host;
+}
+<span class="kw">location</span> / {
+    proxy_pass <span class="str">http://sgip_frontend:80</span>;
+}
+                    </div>
+                </div>
+                <div class="card" style="border-color: rgba(34,211,238,0.3);">
+                    <div style="font-weight:700; margin-bottom:1rem;"><i class="fa-solid fa-book" style="color:#67e8f9;"></i> FastAPI Swagger — Auto-generado</div>
+                    <ul class="check-list" style="font-size:0.85rem; margin-bottom:1rem;">
+                        <li><i class="fa-solid fa-check-circle"></i><span>FastAPI genera <strong>OpenAPI 3.0</strong> automáticamente en <code>/docs</code></span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span>Cada endpoint documentado con <strong>esquemas, parámetros y ejemplos</strong></span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span>Autenticación JWT visible e <strong>interactiva</strong> en Swagger UI</span></li>
+                    </ul>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <div style="display:flex; align-items:center; gap:0.6rem; font-size:0.8rem;">
+                            <span class="badge badge-green">GET</span> <code style="color:var(--text);">/api/v1/patients</code>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:0.6rem; font-size:0.8rem;">
+                            <span class="badge badge-blue">POST</span> <code style="color:var(--text);">/api/v1/patients</code>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:0.6rem; font-size:0.8rem;">
+                            <span class="badge badge-yellow">PUT</span> <code style="color:var(--text);">/api/v1/patients/{id}</code>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:0.6rem; font-size:0.8rem;">
+                            <span class="badge badge-red">DELETE</span> <code style="color:var(--text);">/api/v1/users/{username}</code>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:0.6rem; font-size:0.8rem;">
+                            <span class="badge badge-purple">POST</span> <code style="color:var(--text);">/api/v1/auth/login</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ SLIDE 8: CAPAS DE DATOS ══ -->
+    <div class="slide" id="slide-8">
+        <div style="max-width: 1100px; width: 100%;">
+            <div class="slide-label"><i class="fa-solid fa-database"></i> Persistencia y Caché</div>
+            <h2 class="title" style="margin-bottom: 1.5rem;">Capas de <span class="gradient-text">Datos</span></h2>
+            <div class="grid-2" style="gap: 1.5rem;">
+                <div>
+                    <div class="card" style="border-color: rgba(16,185,129,0.3); margin-bottom: 1rem;">
+                        <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:1rem;">
+                            <div class="icon-box ib-green"><i class="fa-solid fa-database"></i></div>
+                            <div>
+                                <div style="font-weight:800;">MySQL 8 — Datos Transaccionales</div>
+                                <span class="badge badge-green" style="font-size:0.68rem; margin-top:0.2rem;">Capa de Datos 1 — Docker Volume</span>
+                            </div>
+                        </div>
+                        <ul class="check-list" style="font-size:0.82rem;">
+                            <li><i class="fa-solid fa-check-circle"></i><span>Tablas: <code>patients</code>, <code>usuarios</code></span></li>
+                            <li><i class="fa-solid fa-check-circle"></i><span>ORM con <strong>SQLAlchemy</strong> — modelos tipados</span></li>
+                            <li><i class="fa-solid fa-check-circle"></i><span>Índices B-Tree en campos de búsqueda</span></li>
+                            <li><i class="fa-solid fa-check-circle"></i><span>Volumen persistente en <code>sgip_mysql_data</code></span></li>
+                        </ul>
+                    </div>
+                    <div class="card" style="border-color: rgba(239,68,68,0.3);">
+                        <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:1rem;">
+                            <div class="icon-box ib-red"><i class="fa-solid fa-memory"></i></div>
+                            <div>
+                                <div style="font-weight:800;">Redis — Caché en Memoria</div>
+                                <span class="badge badge-red" style="font-size:0.68rem; margin-top:0.2rem;">Capa de Datos 2 — Docker Volume</span>
+                            </div>
+                        </div>
+                        <ul class="check-list" style="font-size:0.82rem;">
+                            <li><i class="fa-solid fa-check-circle"></i><span>Lista <code>patients_notifications_list</code> con TTL</span></li>
+                            <li><i class="fa-solid fa-check-circle"></i><span>Latencia de lectura <strong>&lt; 2ms</strong></span></li>
+                            <li><i class="fa-solid fa-check-circle"></i><span>Reduce 85% consultas directas a MySQL</span></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card" style="height: fit-content; border-color: rgba(99,102,241,0.3); padding: 1.5rem;">
+                    <div style="font-weight:700; margin-bottom:1.2rem; color:#818cf8;"><i class="fa-solid fa-code"></i> Modelo de Mapeo (ORM)</div>
+                    <div style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.88rem; line-height: 1.6; color: var(--muted);">
+                        <p>El backend utiliza <strong>SQLAlchemy</strong> para comunicar el código de la aplicación con la base de datos de forma automática, sin escribir consultas SQL manuales:</p>
+                        <div style="background: rgba(255,255,255,0.02); border-left: 3px solid var(--accent); padding: 0.8rem; border-radius: 0 8px 8px 0; color: var(--text);">
+                            <strong>Paciente (Tabla <code>pacientes</code>):</strong> Almacena nombre, correo, teléfono, diagnóstico principal, tipo de examen solicitado y signos vitales estructurados.
+                        </div>
+                        <div style="background: rgba(255,255,255,0.02); border-left: 3px solid var(--green); padding: 0.8rem; border-radius: 0 8px 8px 0; color: var(--text);">
+                            <strong>Usuario (Tabla <code>usuarios</code>):</strong> Guarda los datos de autenticación del personal médico, encriptando contraseñas con SHA-256 + Salt y gestionando roles (Admin / Doctor).
+                        </div>
+                        <p style="font-size: 0.8rem;">✓ <strong>Ventaja principal:</strong> Evita errores de sintaxis y protege la base de datos contra ataques comunes como inyección SQL.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ SLIDE 9: ATRIBUTOS CALIDAD ══ -->
+    <div class="slide" id="slide-9">
+        <div style="max-width: 1100px; width: 100%;">
+            <div class="slide-label"><i class="fa-solid fa-chart-bar"></i> Análisis Arquitectónico</div>
+            <h2 class="title" style="margin-bottom: 1.5rem;">9 Atributos de <span class="gradient-text">Calidad</span></h2>
+            <div class="grid-3" style="gap: 0.85rem;">
+                <div class="card" style="padding:1rem;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+                        <i class="fa-solid fa-memory" style="color:#67e8f9;"></i>
+                        <strong style="font-size:0.85rem;">Caché</strong>
+                    </div>
+                    <div style="font-size:0.78rem;color:var(--muted);">Redis in-memory. <strong style="color:#34d399;">&lt;2ms</strong> de lectura. 85% menos queries a MySQL</div>
+                </div>
+                <div class="card" style="padding:1rem;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+                        <i class="fa-solid fa-scale-balanced" style="color:#818cf8;"></i>
+                        <strong style="font-size:0.85rem;">Balanceo</strong>
+                    </div>
+                    <div style="font-size:0.78rem;color:var(--muted);">Nginx Layer-7. En Azure: Envoy Proxy con réplicas automáticas</div>
+                </div>
+                <div class="card" style="padding:1rem;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+                        <i class="fa-solid fa-magnifying-glass" style="color:#fbbf24;"></i>
+                        <strong style="font-size:0.85rem;">Indexación</strong>
+                    </div>
+                    <div style="font-size:0.78rem;color:var(--muted);">Índices B-Tree en MySQL. Búsqueda <strong style="color:#34d399;">O(log n)</strong> vs O(n) full scan</div>
+                </div>
+                <div class="card" style="padding:1rem;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+                        <i class="fa-solid fa-copy" style="color:#f87171;"></i>
+                        <strong style="font-size:0.85rem;">Redundancia</strong>
+                    </div>
+                    <div style="font-size:0.78rem;color:var(--muted);">Contenedores independientes. Azure: 2+ réplicas en zonas distintas. Redis AOF + RDB</div>
+                </div>
+                <div class="card" style="padding:1rem;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+                        <i class="fa-solid fa-heart-pulse" style="color:#34d399;"></i>
+                        <strong style="font-size:0.85rem;">Disponibilidad</strong>
+                    </div>
+                    <div style="font-size:0.78rem;color:var(--muted);">Lambda serverless <strong style="color:#34d399;">99.95% SLA</strong>. Graceful degradation si cae DB</div>
+                </div>
+                <div class="card" style="padding:1rem;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+                        <i class="fa-solid fa-bolt" style="color:#c084fc;"></i>
+                        <strong style="font-size:0.85rem;">Concurrencia</strong>
+                    </div>
+                    <div style="font-size:0.78rem;color:var(--muted);">FastAPI ASGI async/await. RabbitMQ desacopla y procesa mensajes en paralelo</div>
+                </div>
+                <div class="card" style="padding:1rem;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+                        <i class="fa-solid fa-gauge-high" style="color:#67e8f9;"></i>
+                        <strong style="font-size:0.85rem;">Latencia</strong>
+                    </div>
+                    <div style="font-size:0.78rem;color:var(--muted);">API responde en <strong style="color:#34d399;">~15ms</strong>. gzip en gateway. Redis &lt;3ms para alertas</div>
+                </div>
+                <div class="card" style="padding:1rem;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+                        <i class="fa-solid fa-coins" style="color:#fbbf24;"></i>
+                        <strong style="font-size:0.85rem;">Costo y Proyección</strong>
+                    </div>
+                    <div style="font-size:0.78rem;color:var(--muted);">Azure Student Free tier. Lambda pago por uso. MySQL Flexible B1ms ~$15/mes</div>
+                </div>
+                <div class="card" style="padding:1rem;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+                        <i class="fa-solid fa-arrow-trend-up" style="color:#818cf8;"></i>
+                        <strong style="font-size:0.85rem;">Performance / Escalabilidad</strong>
+                    </div>
+                    <div style="font-size:0.78rem;color:var(--muted);">Scale-out horizontal con réplicas. Container Apps auto-scale en Azure</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ SLIDE 10: MODELO C4 ══ -->
+    <div class="slide" id="slide-10">
+        <div style="max-width: 1050px; width: 100%;">
+            <div class="slide-label"><i class="fa-solid fa-sitemap"></i> Documentación</div>
+            <h2 class="title" style="margin-bottom: 1.5rem;">Modelo <span class="gradient-text">C4</span> — 3 Niveles</h2>
+            <div class="grid-3" style="gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="card" style="border-color:rgba(34,211,238,0.3);">
+                    <div style="font-weight:800; color:#67e8f9; margin-bottom:0.8rem; font-size:0.9rem;">Nivel 1 — Contexto</div>
+                    <ul class="check-list" style="font-size:0.8rem;">
+                        <li><i class="fa-solid fa-check-circle"></i><span>Médico / Admin interactúan con <strong>SGIP</strong></span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span>Laboratorios externos envían exámenes</span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span>Sistema dentro del hospital</span></li>
+                    </ul>
+                </div>
+                <div class="card" style="border-color:rgba(99,102,241,0.3);">
+                    <div style="font-weight:800; color:#818cf8; margin-bottom:0.8rem; font-size:0.9rem;">Nivel 2 — Contenedores</div>
+                    <ul class="check-list" style="font-size:0.8rem;">
+                        <li><i class="fa-solid fa-check-circle"></i><span><strong>6 contenedores Docker</strong> en Compose</span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span>Frontend SPA, API, Lambda, Gateway</span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span>MySQL + Redis como volúmenes</span></li>
+                    </ul>
+                </div>
+                <div class="card" style="border-color:rgba(245,158,11,0.3);">
+                    <div style="font-weight:800; color:#fbbf24; margin-bottom:0.8rem; font-size:0.9rem;">Nivel 3 — Componentes</div>
+                    <ul class="check-list" style="font-size:0.8rem;">
+                        <li><i class="fa-solid fa-check-circle"></i><span><strong>main.py</strong> — Controller FastAPI</span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span><strong>queue_manager.py</strong> — Publisher</span></li>
+                        <li><i class="fa-solid fa-check-circle"></i><span><strong>lambda_runner.py</strong> — Subscriber</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div style="background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem;">
+                <div style="font-weight:700; font-size:0.85rem; margin-bottom:0.8rem; color: var(--muted);">📦 Azure Production Deployment</div>
+                <div class="arch-flow" style="font-size:0.75rem; gap:0.4rem;">
+                    <div class="arch-node" style="font-size:0.7rem; min-width:75px; background:rgba(34,211,238,0.05); border-color:rgba(34,211,238,0.3);"><i class="fa-solid fa-globe" style="color:#67e8f9;"></i><span>Static Web App</span><span style="color:var(--muted);">Frontend</span></div>
+                    <div class="arch-arrow">→</div>
+                    <div class="arch-node" style="font-size:0.7rem; min-width:75px; background:rgba(99,102,241,0.05); border-color:rgba(99,102,241,0.3);"><i class="fa-solid fa-shield" style="color:#818cf8;"></i><span>APIM</span><span style="color:var(--muted);">API Management</span></div>
+                    <div class="arch-arrow">→</div>
+                    <div class="arch-node" style="font-size:0.7rem; min-width:75px; background:rgba(245,158,11,0.05); border-color:rgba(245,158,11,0.3);"><i class="fa-solid fa-ship" style="color:#fbbf24;"></i><span>Container Apps</span><span style="color:var(--muted);">API Backend</span></div>
+                    <div class="arch-arrow">→</div>
+                    <div class="arch-node" style="font-size:0.7rem; min-width:75px; background:rgba(168,85,247,0.05); border-color:rgba(168,85,247,0.3);"><i class="fa-solid fa-bus" style="color:#c084fc;"></i><span>Service Bus</span><span style="color:var(--muted);">Azure Queue</span></div>
+                    <div class="arch-arrow">→</div>
+                    <div class="arch-node" style="font-size:0.7rem; min-width:75px; background:rgba(239,68,68,0.05); border-color:rgba(239,68,68,0.3);"><i class="fa-solid fa-bolt" style="color:#f87171;"></i><span>Azure Functions</span><span style="color:var(--muted);">Serverless</span></div>
+                    <div class="arch-arrow">→</div>
+                    <div class="arch-node" style="font-size:0.7rem; min-width:75px; background:rgba(16,185,129,0.05); border-color:rgba(16,185,129,0.3);"><i class="fa-solid fa-memory" style="color:#34d399;"></i><span>Redis Cache</span><span style="color:var(--muted);">Azure Cache</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ SLIDE 11: SOLID ══ -->
+    <div class="slide" id="slide-11">
+        <div style="max-width: 1050px; width: 100%;">
+            <div class="slide-label"><i class="fa-solid fa-layer-group"></i> Principios de Diseño</div>
+            <h2 class="title" style="margin-bottom: 1.5rem;">Principios <span class="gradient-text">SOLID</span> Aplicados</h2>
+            <div class="grid-2" style="gap: 1rem;">
+                <div class="card" style="border-left: 3px solid #818cf8; border-top: none; border-radius: 0 12px 12px 12px; padding: 1rem;">
+                    <div style="font-weight:800; color:#818cf8; margin-bottom:0.5rem; font-size:0.9rem;"><span style="font-size:1.1rem;">S</span> — Single Responsibility</div>
+                    <div style="font-size:0.82rem; color:var(--muted);">Cada módulo tiene una responsabilidad: <code>models.py</code> solo define entidades, <code>queue_manager.py</code> solo publica mensajes, <code>database.py</code> solo genera sesiones</div>
+                </div>
+                <div class="card" style="border-left: 3px solid #34d399; border-top: none; border-radius: 0 12px 12px 12px; padding: 1rem;">
+                    <div style="font-weight:800; color:#34d399; margin-bottom:0.5rem; font-size:0.9rem;"><span style="font-size:1.1rem;">O</span> — Open/Closed</div>
+                    <div style="font-size:0.82rem; color:var(--muted);">El endpoint Adapter <code>/ingest-lab</code> está abierto a extensión (nuevos proveedores de lab) pero cerrado a modificación del contrato principal de la API</div>
+                </div>
+                <div class="card" style="border-left: 3px solid #fbbf24; border-top: none; border-radius: 0 12px 12px 12px; padding: 1rem;">
+                    <div style="font-weight:800; color:#fbbf24; margin-bottom:0.5rem; font-size:0.9rem;"><span style="font-size:1.1rem;">L</span> — Liskov Substitution</div>
+                    <div style="font-size:0.82rem; color:var(--muted);">Los modelos SQLAlchemy heredan de <code>Base</code>. Cualquier modelo puede sustituirse sin romper las operaciones CRUD del ORM</div>
+                </div>
+                <div class="card" style="border-left: 3px solid #67e8f9; border-top: none; border-radius: 0 12px 12px 12px; padding: 1rem;">
+                    <div style="font-weight:800; color:#67e8f9; margin-bottom:0.5rem; font-size:0.9rem;"><span style="font-size:1.1rem;">I</span> — Interface Segregation</div>
+                    <div style="font-size:0.82rem; color:var(--muted);">Pydantic schemas separados por caso de uso: <code>PatientCreate</code>, <code>PatientUpdate</code>, <code>PatientResponse</code> — sin campos innecesarios en cada contrato</div>
+                </div>
+                <div class="card" style="border-left: 3px solid #f87171; border-top: none; border-radius: 0 12px 12px 12px; padding: 1rem; grid-column: span 2;">
+                    <div style="font-weight:800; color:#f87171; margin-bottom:0.5rem; font-size:0.9rem;"><span style="font-size:1.1rem;">D</span> — Dependency Inversion</div>
+                    <div style="font-size:0.82rem; color:var(--muted);">FastAPI <code>Depends(get_db)</code> y <code>Depends(verify_token)</code> — los endpoints dependen de abstracciones inyectadas, no de implementaciones concretas. Facilita testing y mocking</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ SLIDE 12: CICD Y MONITOREO ══ -->
+    <div class="slide" id="slide-12">
+        <div style="max-width: 1050px; width: 100%;">
+            <div class="slide-label"><i class="fa-solid fa-infinity"></i> DevOps y Observabilidad</div>
+            <h2 class="title" style="margin-bottom: 1.5rem;">CI/CD &amp; <span class="gradient-text">Monitoreo</span></h2>
+            <div class="grid-2">
+                <div>
+                    <div class="card" style="border-color:rgba(99,102,241,0.3); margin-bottom:1rem;">
+                        <div style="font-weight:700; margin-bottom:0.8rem;"><i class="fa-solid fa-infinity" style="color:#818cf8;"></i> Pipeline CI/CD</div>
+                        <ul class="check-list" style="font-size:0.82rem;">
+                            <li><i class="fa-solid fa-check-circle"></i><span><strong>GitHub Actions</strong>: lint, tests, build Docker</span></li>
+                            <li><i class="fa-solid fa-check-circle"></i><span>Push a <code>main</code> → build automático de imagen</span></li>
+                            <li><i class="fa-solid fa-check-circle"></i><span>Rama <code>develop</code> protegida con PR + review</span></li>
+                            <li><i class="fa-solid fa-check-circle"></i><span>Deploy a Azure Container Apps en merge</span></li>
+                        </ul>
+                    </div>
+                    <div class="card" style="border-color:rgba(16,185,129,0.3);">
+                        <div style="font-weight:700; margin-bottom:0.8rem;"><i class="fa-brands fa-git-alt" style="color:#34d399;"></i> Git Best Practices</div>
+                        <ul class="check-list" style="font-size:0.82rem;">
+                            <li><i class="fa-solid fa-check-circle"></i><span>Conventional Commits: <code>feat:</code>, <code>fix:</code>, <code>docs:</code></span></li>
+                            <li><i class="fa-solid fa-check-circle"></i><span>Feature branching + merge request workflow</span></li>
+                            <li><i class="fa-solid fa-check-circle"></i><span><code>.gitignore</code> para <code>.env</code>, <code>__pycache__</code></span></li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="card" style="border-color:rgba(245,158,11,0.3); margin-bottom:1rem;">
+                        <div style="font-weight:700; margin-bottom:0.8rem;"><i class="fa-solid fa-chart-line" style="color:#fbbf24;"></i> Monitoreo</div>
+                        <ul class="check-list" style="font-size:0.82rem;">
+                            <li><i class="fa-solid fa-check-circle"></i><span><strong>Application Insights</strong> en Azure para telemetría</span></li>
+                            <li><i class="fa-solid fa-check-circle"></i><span>Estado del sistema visible en tiempo real en el <strong>panel de Configuración</strong></span></li>
+                            <li><i class="fa-solid fa-check-circle"></i><span>Health checks: API Gateway / Backend API / RabbitMQ</span></li>
+                            <li><i class="fa-solid fa-check-circle"></i><span>Logs estructurados con Python <code>logging</code> module</span></li>
+                        </ul>
+                    </div>
+                    <div class="card" style="border-color:rgba(168,85,247,0.3);">
+                        <div style="font-weight:700; margin-bottom:0.8rem;"><i class="fa-solid fa-file-code" style="color:#c084fc;"></i> Logs y Auditoría</div>
+                        <ul class="check-list" style="font-size:0.82rem;">
+                            <li><i class="fa-solid fa-check-circle"></i><span>Cada evento de paciente genera un <strong>log en RabbitMQ</strong></span></li>
+                            <li><i class="fa-solid fa-check-circle"></i><span>Alertas de salud con historial en Redis + UI</span></li>
+                            <li><i class="fa-solid fa-check-circle"></i><span>Docker logs accesibles con <code>docker logs &lt;container&gt;</code></span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ SLIDE 13: CIERRE ══ -->
+    <div class="slide" id="slide-13">
+        <div class="orb" style="width:500px;height:500px;background:#6366f1;top:-150px;right:-100px;"></div>
+        <div class="orb" style="width:350px;height:350px;background:#22d3ee;bottom:-100px;left:-80px;"></div>
+        <div style="max-width: 900px; width: 100%; text-align: center;">
+            <div class="slide-label" style="justify-content: center; margin-bottom: 1.5rem;"><i class="fa-solid fa-hospital"></i> SGIP — Proyecto Integrador A_ABET</div>
+            <h1 class="hero" style="text-align: center; margin-bottom: 1.5rem;">
+                Conclusión <span class="gradient-text">Final</span>
+            </h1>
+            <p style="font-size: 1.05rem; color: var(--muted); max-width: 650px; margin: 0 auto 2.5rem; line-height: 1.8;">
+                SGIP representa una solución completa para la gestión de pacientes y alertas clínicas, aplicando conceptos de microservicios, mensajería asíncrona, funciones serverless y buenas prácticas de diseño de software.
+            </p>
+            <div style="display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2.5rem;">
+                <span class="badge badge-blue" style="font-size:0.85rem; padding:0.5rem 1rem;"><i class="fa-brands fa-python"></i> FastAPI</span>
+                <span class="badge badge-yellow" style="font-size:0.85rem; padding:0.5rem 1rem;"><i class="fa-brands fa-docker"></i> Docker</span>
+                <span class="badge badge-purple" style="font-size:0.85rem; padding:0.5rem 1rem;"><i class="fa-solid fa-arrows-spin"></i> RabbitMQ</span>
+                <span class="badge badge-cyan" style="font-size:0.85rem; padding:0.5rem 1rem;"><i class="fa-solid fa-shield"></i> Nginx Gateway</span>
+                <span class="badge badge-red" style="font-size:0.85rem; padding:0.5rem 1rem;"><i class="fa-solid fa-bolt"></i> Lambda Worker</span>
+                <span class="badge badge-green" style="font-size:0.85rem; padding:0.5rem 1rem;"><i class="fa-solid fa-database"></i> MySQL + Redis</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--muted);">
+                <strong style="color: var(--text);">Facultad de Ingeniería y Ciencias Aplicadas</strong> &nbsp;·&nbsp; Ingeniería de Software &nbsp;·&nbsp; ISWZ2202
+            </div>
+        </div>
+    </div>
+
+</div><!-- end slides-wrapper -->
+
+<!-- Navigation Controls -->
+<div id="controls">
+    <button class="ctrl-btn" id="btn-prev" disabled onclick="changeSlide(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+    <span id="slide-counter">1 / 13</span>
+    <button class="ctrl-btn" id="btn-next" onclick="changeSlide(1)"><i class="fa-solid fa-chevron-right"></i></button>
+</div>
+
+<div id="dots"></div>
+
+<script>
+    const TOTAL = 13;
+    let current = 1;
+
+    const progressBar = document.getElementById('progress-bar');
+    const slideCounter = document.getElementById('slide-counter');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const dotsContainer = document.getElementById('dots');
+
+    // Build dots
+    for (let i = 1; i <= TOTAL; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'dot' + (i === 1 ? ' active' : '');
+        dot.onclick = () => goTo(i);
+        dotsContainer.appendChild(dot);
+    }
+
+    function goTo(n) {
+        if (n < 1 || n > TOTAL || n === current) return;
+
+        const prevSlide = document.getElementById('slide-' + current);
+        const nextSlide = document.getElementById('slide-' + n);
+
+        prevSlide.classList.remove('active');
+        prevSlide.classList.add('exit');
+
+        setTimeout(() => {
+            prevSlide.classList.remove('exit');
+        }, 500);
+
+        nextSlide.classList.add('active');
+
+        current = n;
+        updateUI();
+    }
+
+    function changeSlide(dir) { goTo(current + dir); }
+
+    function updateUI() {
+        slideCounter.textContent = current + ' / ' + TOTAL;
+        progressBar.style.width = ((current / TOTAL) * 100) + '%';
+        btnPrev.disabled = current === 1;
+        btnNext.disabled = current === TOTAL;
+        dotsContainer.querySelectorAll('.dot').forEach((d, i) => {
+            d.classList.toggle('active', i + 1 === current);
+        });
+    }
+
+    // Keyboard nav
+    document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); changeSlide(1); }
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); changeSlide(-1); }
+        if (e.key === 'Home') goTo(1);
+        if (e.key === 'End') goTo(TOTAL);
+    });
+
+    // Touch/swipe
+    let touchStartX = 0;
+    document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
+    document.addEventListener('touchend', e => {
+        const dx = touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(dx) > 50) changeSlide(dx > 0 ? 1 : -1);
+    });
+</script>
+</body>
+</html>
