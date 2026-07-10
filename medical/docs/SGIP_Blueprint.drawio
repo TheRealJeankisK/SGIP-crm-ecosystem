@@ -236,6 +236,107 @@
             <mxPoint x="330" y="820" as="targetPoint" />
           </mxGeometry>
         </mxCell>
+        <!-- DevOps & Telemetry Group Box -->
+        <mxCell id="devops_group" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#b3b3b3;dashed=1;" vertex="1">
+          <mxGeometry height="260" width="380" x="810" y="750" as="geometry" />
+        </mxCell>
+        <mxCell id="devops_group_label" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Consolas;fontStyle=1;" value="Monitoreo, Logs &amp; Telemetría (DevOps)" vertex="1">
+          <mxGeometry height="20" width="280" x="810" y="750" as="geometry" />
+        </mxCell>
+
+        <!-- Application Insights Node -->
+        <mxCell id="node_app_insights" parent="1" style="html=1;outlineConnect=0;whiteSpace=wrap;fillColor=light-dark(#f8cecc, #3d2121);shape=mxgraph.archimate3.application;appType=comp;archiType=square;fontFamily=Consolas;" value="Azure Application Insights&lt;br&gt;(APM &amp; Telemetría Distribuida)" vertex="1">
+          <mxGeometry height="60" width="160" x="830" y="790" as="geometry" />
+        </mxCell>
+
+        <!-- Log Analytics Node -->
+        <mxCell id="node_log_analytics" parent="1" style="html=1;outlineConnect=0;whiteSpace=wrap;fillColor=light-dark(#dae8fc, #1b2f4c);shape=mxgraph.archimate3.application;appType=comp;archiType=square;fontFamily=Consolas;" value="Azure Log Analytics&lt;br&gt;(Agregador Central de Logs)" vertex="1">
+          <mxGeometry height="60" width="160" x="1010" y="790" as="geometry" />
+        </mxCell>
+
+        <!-- Nginx Logs Node -->
+        <mxCell id="node_nginx_logs" parent="1" style="html=1;outlineConnect=0;whiteSpace=wrap;fillColor=light-dark(#e1d5e7, #3a223f);shape=mxgraph.archimate3.application;appType=comp;archiType=square;fontFamily=Consolas;" value="Nginx Access/Error Logs&lt;br&gt;(Volumen de Auditoría HTTP)" vertex="1">
+          <mxGeometry height="60" width="180" x="910" y="910" as="geometry" />
+        </mxCell>
+
+        <!-- CI/CD Group Box -->
+        <mxCell id="cicd_group" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#b3b3b3;dashed=1;" vertex="1">
+          <mxGeometry height="280" width="150" x="30" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="cicd_group_label" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Consolas;fontStyle=1;" value="Automatización CI/CD" vertex="1">
+          <mxGeometry height="20" width="140" x="30" y="300" as="geometry" />
+        </mxCell>
+
+        <!-- GitHub Actions Node -->
+        <mxCell id="node_github_actions" parent="1" style="html=1;outlineConnect=0;whiteSpace=wrap;fillColor=light-dark(#d5e8d4, #1c3d18);shape=mxgraph.archimate3.application;appType=comp;archiType=square;fontFamily=Consolas;" value="GitHub Actions&lt;br&gt;(CI/CD Pipeline)" vertex="1">
+          <mxGeometry height="60" width="130" x="40" y="340" as="geometry" />
+        </mxCell>
+
+        <!-- Container Registry Node -->
+        <mxCell id="node_acr" parent="1" style="html=1;outlineConnect=0;whiteSpace=wrap;fillColor=light-dark(#fff2cc, #4c3f18);shape=mxgraph.archimate3.application;appType=comp;archiType=square;fontFamily=Consolas;" value="Azure Container&lt;br&gt;Registry (ACR)" vertex="1">
+          <mxGeometry height="60" width="130" x="40" y="460" as="geometry" />
+        </mxCell>
+
+        <!-- Connection: GitHub Actions -> ACR -->
+        <mxCell id="edge_gha_acr" edge="1" parent="1" source="node_github_actions" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="node_acr">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="105" y="400" as="sourcePoint" />
+            <mxPoint x="105" y="460" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Connection: ACR -> Docker Host -->
+        <mxCell id="edge_acr_docker" edge="1" parent="1" source="node_acr" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="O0Xs51O-jKY1W5wy7n4s-10">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="105" y="520" as="sourcePoint" />
+            <mxPoint x="345" y="1120" as="targetPoint" />
+            <Array points="105,700,105,1120,345,1120" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Connection: FastAPI -> App Insights -->
+        <mxCell id="edge_fastapi_insights" edge="1" parent="1" source="O0Xs51O-jKY1W5wy7n4s-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="node_app_insights">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="330" y="820" as="sourcePoint" />
+            <mxPoint x="830" y="820" as="targetPoint" />
+            <Array points="330,820,830,820" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Connection: Lambda -> App Insights -->
+        <mxCell id="edge_lambda_insights" edge="1" parent="1" source="O0Xs51O-jKY1W5wy7n4s-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="node_app_insights">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="640" y="820" as="sourcePoint" />
+            <mxPoint x="830" y="820" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Connection: Gateway -> Nginx Logs -->
+        <mxCell id="edge_gateway_nginxlogs" edge="1" parent="1" source="O0Xs51O-jKY1W5wy7n4s-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="node_nginx_logs">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="525" y="660" as="sourcePoint" />
+            <mxPoint x="910" y="940" as="targetPoint" />
+            <Array points="570,660,570,940,910,940" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Connection: FastAPI -> Log Analytics -->
+        <mxCell id="edge_fastapi_logs" edge="1" parent="1" source="O0Xs51O-jKY1W5wy7n4s-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="node_log_analytics">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="330" y="830" as="sourcePoint" />
+            <mxPoint x="1010" y="830" as="targetPoint" />
+            <Array points="330,830,1010,830" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Connection: Lambda -> Log Analytics -->
+        <mxCell id="edge_lambda_logs" edge="1" parent="1" source="O0Xs51O-jKY1W5wy7n4s-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="node_log_analytics">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="640" y="830" as="sourcePoint" />
+            <mxPoint x="1010" y="830" as="targetPoint" />
+            <Array points="640,830,1010,830" />
+          </mxGeometry>
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
