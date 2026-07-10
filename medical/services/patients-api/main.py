@@ -12,8 +12,8 @@ from queue_manager import queue_manager
 from config import settings
 
 app = FastAPI(
-    title="SGIP Patients Backend API",
-    description="Core backend API for managing clinical records and patient telemedicine data of SGIP.",
+    title="API de Pacientes - SGIP",
+    description="API principal del backend para gestionar registros clínicos e historiales de telemedicina del SGIP.",
     version="1.0.0"
 )
 
