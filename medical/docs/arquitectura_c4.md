@@ -151,3 +151,12 @@ graph TD
 5. **Patients Service ➔ Service Bus**: AMQP sobre WebSockets (Puerto 5671/443).
 6. **Service Bus ➔ Azure Function**: Disparador por polling interno (AMQP).
 7. **Azure Function ➔ Redis**: Protocolo RESP de Redis seguro (TLS Puerto 6380).
+
+---
+
+## 3. Modelo C4 en Código (Structurizr DSL)
+
+Para cumplir con el estándar formal de la metodología **C4 Model in Code** y facilitar su renderización en herramientas como **Structurizr CLI** o **IcePanel**, se ha definido la arquitectura completa del SGIP en el archivo estructurado [workspace.dsl](file:///C:/Users/jeanc/Desktop/Arquitectura%20de%20Software/A_ABET%20Proyecto%20Integrador/medical/docs/workspace.dsl).
+
+Este archivo utiliza el lenguaje DSL oficial de Structurizr para modelar de forma jerárquica los actores (Personas), contenedores (Containers), subcomponentes (Components) y las relaciones de red del ecosistema clínico. Puede ser importado directamente en cualquier visor compatible con Structurizr para generar los diagramas interactivos automáticamente.
+
