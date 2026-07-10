@@ -22,9 +22,16 @@ workspace {
             cache = container "Redis Cache" "Almacenamiento en memoria para alertas de salud en tiempo real con baja latencia." "Redis" "Cache"
         }
 
+        # External Software Systems (Interoperabilidad Avanzada)
         lab = softwareSystem "Laboratorio Clínico Externo" "Envía exámenes diagnósticos clínicos en formatos XML o JSON." "External System"
         appInsights = softwareSystem "Azure Application Insights" "Servicio APM para monitoreo de telemetría y logs distribuidos." "External System"
         github = softwareSystem "GitHub Actions" "Pipeline de integración y despliegue continuo (CI/CD) automatizado." "External System"
+        
+        entraId = softwareSystem "Microsoft Entra ID" "Proveedor de identidad federada para autenticación de personal de salud." "External System"
+        smtp = softwareSystem "Azure Email Services (SMTP)" "Envía notificaciones de emergencias por correo electrónico a médicos de guardia." "External System"
+        twilio = softwareSystem "Twilio SMS Gateway" "Envía alertas críticas de constantes vitales vía SMS a los celulares de los médicos." "External System"
+        msp = softwareSystem "Registro HL7 FHIR (MSP)" "Repositorio del Ministerio de Salud Pública para vigilancia epidemiológica obligatoria." "External System"
+        billing = softwareSystem "Sistema de Admisión & Facturación (ERP)" "Sincroniza altas de pacientes y transacciones administrativas." "External System"
 
         # Relationships
         doctor -> gateway "Usa el portal web y gestiona pacientes a través de" "HTTPS/Port 80"
@@ -39,10 +46,15 @@ workspace {
         backend -> queue "Publica eventos clínicos en" "AMQP/TCP/Port 5672"
         backend -> cache "Consulta telemetría en" "TCP/Port 6379"
         backend -> appInsights "Envía trazas de ejecución y telemetría a" "HTTPS"
+        backend -> entraId "Valida credenciales e inyecta JWT mediante" "OIDC/HTTPS"
+        backend -> msp "Notifica casos de vigilancia obligatoria a" "HL7 FHIR/HTTPS"
+        backend -> billing "Sincroniza estados de alta y cobros con" "REST/HTTPS"
 
         queue -> lambda "Dispara ejecución en" "AMQP/TCP/Port 5672"
         lambda -> cache "Escribe alertas clínicas en" "TCP/Port 6379"
         lambda -> appInsights "Envía logs de ejecución a" "HTTPS"
+        lambda -> smtp "Dispara el envío de alertas de correo electrónico por" "SMTP/TLS"
+        lambda -> twilio "Envía alertas prioritarias por SMS a través de" "HTTPS"
 
         github -> backend "Compila y despliega el contenedor de" "SSH/HTTPS"
         github -> lambda "Compila y despliega el código serverless de" "SSH/HTTPS"
