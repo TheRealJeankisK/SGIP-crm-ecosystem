@@ -29,11 +29,14 @@ graph TB
         MailServer["Servidor de Correo SMTP<br>(Redis Server)"]
     end
 
-    Médico -->|Registra pacientes y visita proyectos| SGIP
-    Admin -->|Califica pacientes y supervisa ofertas| SGIP
-    SGIP -->|Sincroniza cotizaciones aprobadas| Sistema de Laboratorio
-    SGIP -->|Envía correos con PDFs a clientes| MailServer
+    Médico -->|Gestiona fichas clínicas e historiales| SGIP
+    Admin -->|Gestiona accesos y configuraciones| SGIP
+    SGIP -->|Recibe e integra reportes de exámenes| Sistema de Laboratorio
+    SGIP -->|Envía alertas prioritarias y telemetría| MailServer
 ```
+
+*Diagrama de Contexto visualizado en Structurizr:*
+![Nivel 1 - Contexto del Sistema](C4/Nivel1_Contexto_Sistema_SGIP.png)
 
 ---
 
@@ -66,6 +69,9 @@ graph TD
     class DB,Cache db;
     class Queue broker;
 ```
+
+*Diagrama de Contenedores visualizado en Structurizr:*
+![Nivel 2 - Contenedores del Ecosistema](C4/Nivel2_Contenedores_Ecosistema_Docker.png)
 
 ---
 
@@ -100,6 +106,10 @@ graph TB
     RedisClient -->|Guarda lista JSON| Cache[(Redis Cache)]
     ORM -->|Guarda registro| DB[(MySQL DB)]
 ```
+
+*Diagramas de Componentes visualizados en Structurizr:*
+![Nivel 3 - Componentes Patients API](C4/Nivel3_Componentes_API_FastAPI.png)
+![Nivel 3 - Componentes Lambda Worker](C4/Nivel3_Componentes_Azure_Function.png)
 
 ---
 
@@ -142,6 +152,11 @@ graph TD
     Func -->|Telemetría| AppInsights
     ACA -->|Telemetría| AppInsights
 ```
+
+*Diagrama de Despliegue en la Nube visualizado en Structurizr:*
+![Nivel 4 - Despliegue en Microsoft Azure](C4/Nivel4_Despliegue_Produccion_Azure.png)
+
+---
 
 ### Protocolos de Comunicación Utilizados
 1. **Cliente ➔ Frontend**: HTTPS (Puerto 443).
