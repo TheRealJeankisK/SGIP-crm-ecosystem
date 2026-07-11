@@ -5,7 +5,7 @@
 **Integrantes:**  
 * Jean Carlos Gómez Mafla  
 * Adrian Morales  
-* Adrian Puco  
+* Nicolás Puco  
 
 ---
 

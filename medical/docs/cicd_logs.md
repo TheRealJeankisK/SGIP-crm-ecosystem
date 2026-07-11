@@ -37,7 +37,7 @@ Para asegurar una alta disponibilidad, implementamos una estrategia de monitoreo
 3. **Errores:** Tasa de respuestas HTTP 5xx. Alertas críticas si la tasa de errores supera el **1%** de las peticiones totales.
 4. **Saturación (Uso de Recursos):** Alertas si el consumo de CPU o Memoria de los contenedores Docker o Azure Container Apps supera el **85%**.
 
-En Azure, esto se visualiza en un panel de control interactivo en **Azure Monitor**, y las alertas se envían automáticamente por correo electrónico al equipo técnico (Adrian Morales, Jean Carlos Gómez, Adrian Puco).
+En Azure, esto se visualiza en un panel de control interactivo en **Azure Monitor**, y las alertas se envían automáticamente por correo electrónico al equipo técnico (Adrian Morales, Jean Carlos Gómez, Nicolás Puco).
 
 ---
 
