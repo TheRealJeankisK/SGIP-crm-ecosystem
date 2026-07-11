@@ -75,41 +75,52 @@ graph TD
 
 ---
 
-### 1.3. Nivel 3: Diagrama de Componentes
-Detalle de la arquitectura interna de los microservicios **Patients Service** y **Notification Lambda**.
+### 1.3. Nivel 3: Diagrama de Componentes (Hexagonal / Ports & Adapters)
+Detalle de la arquitectura interna del microservicio **Patients Service** refactorizado bajo el patrón de **Arquitectura Hexagonal (Puertos y Adaptadores)**, garantizando que el núcleo lógico esté desacoplado de las integraciones de infraestructura (Base de Datos, Broker y Caché).
 
 ```mermaid
 graph TB
-    subgraph "Patients Service Components"
-        API["FastAPI Controller<br>(main.py)"]
-        Config["Config Settings<br>(config.py)"]
-        DBConn["Database Session<br>(database.py)"]
-        ORM["SQLAlchemy Models<br>(models.py)"]
-        Publisher["Queue Publisher<br>(queue_manager.py)"]
-        
-        API --> Config
-        API --> DBConn
-        DBConn --> ORM
-        API --> Publisher
+    subgraph CapaAplicacion ["Capa de Aplicación (Core / Dominios)"]
+        API["FastAPI Router<br>(main.py)"]
+        Models["Modelos de Datos y Validación<br>(models.py)"]
+        Config["Configuraciones del Sistema<br>(config.py)"]
     end
-    
-    subgraph "Notification Lambda Components"
-        Runner["RabbitMQ Event Listener<br>(lambda_runner.py)"]
-        Handler["Azure Function Handler<br>(function_app.py)"]
-        RedisClient["Redis Connector"]
-        
-        Runner --> Handler
-        Handler --> RedisClient
+
+    subgraph CapaInfraestructura ["Capa de Infraestructura (Adapters)"]
+        DBAdapter["DB Adapter (SQLAlchemy / MySQL)<br>(adapters/database.py)"]
+        QueueAdapter["Queue Adapter (RabbitMQ / ASB)<br>(adapters/queue.py)"]
+        CacheAdapter["Cache Adapter (Redis)<br>(adapters/cache.py)"]
     end
+
+    subgraph ServidoresExternos ["Sistemas de Persistencia e Integración"]
+        MySQL[("Base de Datos (MySQL)")]
+        RabbitMQ[("Message Broker (RabbitMQ)")]
+        Redis[("Caché en Memoria (Redis)")]
+    end
+
+    API --> Models
+    API --> Config
     
-    Publisher -->|Envía JSON| Runner
-    RedisClient -->|Guarda lista JSON| Cache[(Redis Cache)]
-    ORM -->|Guarda registro| DB[(MySQL DB)]
+    API -->|Consume get_db| DBAdapter
+    API -->|Consume publish_patient_event| QueueAdapter
+    API -->|Consume get_alerts_list / clear| CacheAdapter
+
+    DBAdapter -->|Llamadas SQL| MySQL
+    QueueAdapter -->|Protocolo AMQP| RabbitMQ
+    CacheAdapter -->|Protocolo RESP| Redis
 ```
 
 *Diagramas de Componentes visualizados en Structurizr:*
 ![Nivel 3 - Componentes Patients API](C4/Nivel3_Componentes_API_FastAPI.png)
 ![Nivel 3 - Componentes Lambda Worker](C4/Nivel3_Componentes_Azure_Function.png)
+
+---
+
+### 1.4. Nivel 4: Diagrama de Despliegue Local (Entorno Docker Compose)
+Este diagrama detalla la topología física local, mostrando los 7 contenedores Docker independientes que componen el ecosistema de desarrollo de SGIP, incluyendo mapeo de puertos y volúmenes persistentes.
+
+*Diagrama de Despliegue Local en Docker Compose:*
+![Nivel 4 - Despliegue Local Docker](C4/Nivel4_Despliegue_Local_Docker.png)
 
 ---
 

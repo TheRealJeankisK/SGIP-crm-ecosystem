@@ -1,8 +1,8 @@
 import sys
-from database import SessionLocal
+from adapters.database import SessionLocal
 from models import Paciente
 from datetime import datetime, timedelta
-from queue_manager import queue_manager
+from adapters.queue import queue_adapter as queue_manager
 
 def seed_patients():
     db = SessionLocal()

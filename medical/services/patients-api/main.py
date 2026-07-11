@@ -2,13 +2,13 @@ from fastapi import FastAPI, Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
 from typing import List
 import json
-import redis
 import hashlib
 import uuid
 
-from database import engine, Base, get_db
+from adapters.database import engine, Base, get_db
 from models import Paciente, PacienteCreate, PacienteResponse, Usuario, UserLogin, TokenResponse, UsuarioCreate, UsuarioResponse
-from queue_manager import queue_manager
+from adapters.queue import queue_adapter as queue_manager
+from adapters.cache import cache_adapter
 from config import settings
 
 app = FastAPI(
@@ -313,23 +313,17 @@ def startup_event():
     finally:
         db.close()
 
-# Redis client connection
-def get_redis():
-    try:
-        r = redis.Redis(
-            host=settings.REDIS_HOST,
-            port=settings.REDIS_PORT,
-            decode_responses=True
-        )
-        return r
-    except Exception as e:
-        print(f"Failed to connect to Redis: {e}")
-        return None
-
 # Healthcheck Endpoint
 @app.get("/api/v1/health")
 def healthcheck():
-    return {"status": "healthy", "environment": settings.ENVIRONMENT}
+    cache_ok = cache_adapter.verify_cache_health()
+    return {
+        "status": "healthy" if cache_ok else "degraded",
+        "environment": settings.ENVIRONMENT,
+        "services": {
+            "cache": "connected" if cache_ok else "disconnected"
+        }
+    }
 
 # POST: Authenticate user (Login)
 @app.post("/api/v1/auth/login", response_model=TokenResponse)
@@ -512,15 +506,10 @@ def delete_patient(
 # GET: Fetch processed health notifications from Redis Cache (Protected)
 @app.get("/api/v1/patients/notifications")
 def get_notifications(
-    redis_client = Depends(get_redis),
     username: str = Depends(verify_token)
 ):
-    if redis_client is None:
-        return []
-    
     try:
-        # Retrieve all notifications from Redis List
-        logs = redis_client.lrange("patients_notifications_list", 0, -1)
+        logs = cache_adapter.get_alerts_list()
         parsed_logs = []
         for log in logs:
             try:
@@ -529,27 +518,21 @@ def get_notifications(
                 continue
         return parsed_logs
     except Exception as e:
-        print(f"Error reading from Redis: {e}")
+        print(f"Error reading from cache adapter: {e}")
         return []
 
 # DELETE: Clear all health notifications from Redis Cache (Protected)
 @app.delete("/api/v1/patients/notifications")
 def delete_notifications(
-    redis_client = Depends(get_redis),
     username: str = Depends(verify_token)
 ):
-    if redis_client is None:
-        raise HTTPException(
-            status_code=500,
-            detail="Redis connection not available"
-        )
     try:
-        redis_client.delete("patients_notifications_list")
+        cache_adapter.clear_alerts_list()
         return {"message": "Health notification logs successfully cleared"}
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Error clearing cache: {e}"
+            detail=f"Error clearing cache adapter: {e}"
         )
 
 from pydantic import BaseModel

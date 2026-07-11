@@ -7,9 +7,9 @@
 **Integrantes:**
 *   Jean Carlos Gómez Mafla
 *   Adrian Morales
-*   Adrian Puco
+*   Nicolás Puco
 **Profesor:** Mónica Fernanda Sanchez Rosero  
-**Fecha:** 09 de Julio de 2026  
+**Fecha:** 11 de Julio de 2026  
 
 ---
 
@@ -25,7 +25,7 @@ Para garantizar la resiliencia, la disponibilidad y el bajo acoplamiento, se imp
 ---
 
 ## 2. COMPORTAMIENTO DE LAS APLICACIONES (ECOSISTEMA)
-La solución cuenta con un ecosistema dockerizado compuesto por **tres aplicaciones principales** independientes y **tres capas de persistencia y enrutamiento**:
+La solución cuenta con un ecosistema dockerizado compuesto por tres aplicaciones principales independientes y tres capas de persistencia y enrutamiento:
 
 ```mermaid
 graph TD
@@ -58,6 +58,12 @@ Microservicio serverless que actúa como consumidor de la cola de eventos:
 *   **Consumo Asíncrono:** Escucha la cola `patients_notifications` y procesa los exámenes y estados.
 *   **Lógica de Clasificación:** Si el paciente ingresa en estado **Crítico**, genera una alerta médica de alta prioridad en Redis con instrucciones urgentes de control en 15 minutos.
 *   **Persistencia Volátil:** Escribe y actualiza el historial de alertas clínicas en memoria con una lista Redis optimizada de máximo 50 registros.
+
+### 2.4 Diagrama de Infraestructura Local (Entorno Docker Compose)
+El entorno local de desarrollo está compuesto por 7 contenedores Docker independientes orquestados por Docker Compose, mapeando puertos del host y montando volúmenes de persistencia para garantizar resiliencia e independencia tecnológica.
+
+*Diagrama de Infraestructura Local (C4 Nivel 4 - Despliegue Local):*
+![Nivel 4 - Despliegue Local Docker](C4/Nivel4_Despliegue_Local_Docker.png)
 
 ---
 
@@ -152,6 +158,16 @@ Dado que los laboratorios clínicos externos envían los resultados en múltiple
 *   **XML Adapter:** Implementa la librería estándar `xml.etree.ElementTree` para navegar por la jerarquía de etiquetas XML (`<nombre_paciente>`, `<tipo>`, `<estado_salud>`, `<detalles_clinicos>`) y traducirlas a las columnas del dominio unificado `Paciente` en MySQL.
 
 Esto permite recibir cualquier examen sin alterar el núcleo del sistema, logrando un desacoplamiento e interoperabilidad absolutos.
+
+### 5.4 Patrón Puertos y Adaptadores (Arquitectura Hexagonal)
+En sintonía con las recomendaciones del jurado calificador, se implementó el patrón arquitectónico de **Puertos y Adaptadores** en el backend de la API de pacientes (`patients-api`). 
+
+Se desacopló la lógica de negocio y las llamadas del Framework (FastAPI) de los detalles de infraestructura tecnológica. Toda interacción con el almacenamiento persistente MySQL, el broker de mensajería RabbitMQ y la base de datos de caché Redis se extrajo y aisló dentro de un módulo independiente de infraestructura (`adapters/`):
+*   **Adaptador de Base de Datos (`adapters/database.py`):** Encapsula el ciclo de vida de las sesiones y la conexión física con SQLAlchemy y MySQL.
+*   **Adaptador de Mensajería (`adapters/queue.py`):** Encapsula las credenciales y el canal de publicación AMQP de RabbitMQ, permitiendo intercambiar el broker (por ejemplo, cambiar RabbitMQ local por Azure Service Bus) sin modificar una sola línea de código en los controladores.
+*   **Adaptador de Caché (`adapters/cache.py`):** Encapsula el cliente Redis y las operaciones de lectura y borrado del canal de alertas.
+
+Esta refactorización garantiza la máxima mantenibilidad del sistema, facilitando la realización de pruebas unitarias (*Mocking*) y permitiendo reemplazar bases de datos o servicios de colas con un costo de refactorización virtualmente nulo.
 
 ### 5.2 Patrón Observer (Comportamiento)
 Implementado a través del Broker de mensajería (RabbitMQ). La función serverless se suscribe como observadora del canal de eventos. Cada vez que el microservicio de pacientes publica un cambio de salud, la cola notifica de forma reactiva y asíncrona a la función lambda, la cual reacciona generando alertas médicas en la caché Redis sin necesidad de realizar sondeos continuos (*polling*) a la base de datos MySQL.
